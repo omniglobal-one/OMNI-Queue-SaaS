@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
 import { useQueueRealtime } from '@/hooks/useQueueRealtime'
 import { StatusCard } from '@/components/customer/StatusCard'
 import { PushPrompt } from '@/components/customer/PushPrompt'
@@ -29,9 +30,21 @@ export function TicketViewClient({
     initialPendingAhead,
   })
 
+  const [copied, setCopied] = useState(false)
+
   if (!ticket || !queue) return null
 
   const isActive = ticket.status === 'pending' || ticket.status === 'in_progress'
+
+  async function handleCopyLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // fallback for browsers that block clipboard without user gesture
+    }
+  }
 
   return (
     <div className="min-h-screen bg-bg-base">
@@ -75,9 +88,29 @@ export function TicketViewClient({
           </>
         )}
 
-        <div className="text-center">
+        <div className="text-center space-y-3">
+          <button
+            onClick={handleCopyLink}
+            className="inline-flex items-center gap-1.5 text-xs text-text-secondary hover:text-text-primary transition-colors"
+          >
+            {copied ? (
+              <>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M13 4L6 11l-3-3" />
+                </svg>
+                Link copied!
+              </>
+            ) : (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+                Copy link to this page
+              </>
+            )}
+          </button>
           <p className="text-xs text-text-tertiary">Keep this page open to track your position in real time.</p>
-          <p className="text-xs text-text-tertiary mt-1">Ticket ID: <span className="mono">{ticket.id.slice(0, 8)}…</span></p>
         </div>
       </div>
     </div>

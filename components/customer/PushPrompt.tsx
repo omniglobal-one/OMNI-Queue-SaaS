@@ -39,10 +39,15 @@ export function PushPrompt({ ticketId, queueId, alreadySubscribed }: {
         return
       }
 
-      const swTimeout = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Service worker not ready. Try reloading the page on the live site.')), 10000)
-      )
-      const reg = await Promise.race([navigator.serviceWorker.ready, swTimeout])
+      // Register the push service worker if not already registered
+      let reg = await navigator.serviceWorker.getRegistration('/sw.js')
+      if (!reg) {
+        reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      }
+
+      // Wait for the SW to become active
+      await navigator.serviceWorker.ready
+
       const existing = await reg.pushManager.getSubscription()
       const sub = existing ?? await reg.pushManager.subscribe({
         userVisibleOnly: true,
