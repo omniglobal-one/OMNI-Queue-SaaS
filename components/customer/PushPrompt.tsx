@@ -48,10 +48,16 @@ export function PushPrompt({ ticketId, queueId, alreadySubscribed }: {
       // Wait for the SW to become active
       await navigator.serviceWorker.ready
 
+      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+      if (!vapidKey || vapidKey.startsWith('REPLACE')) {
+        setError('Push notifications are not configured yet. Please try again later.')
+        return
+      }
+
       const existing = await reg.pushManager.getSubscription()
       const sub = existing ?? await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ''),
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
       })
 
       const p256dhKey = sub.getKey('p256dh')!
