@@ -52,7 +52,7 @@ export default function NewQueuePage() {
     <>
       <Topbar title="New Queue" subtitle="Set up a digital queue for your customers" />
       <div className="p-4 sm:p-6 lg:p-8">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           <form onSubmit={handleSubmit}>
             <div className="card p-6 space-y-4">
               <h2 className="section-header">Queue Details</h2>
