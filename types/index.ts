@@ -39,6 +39,7 @@ export interface Queue {
   next_counter: number
   is_accepting: boolean
   max_tickets: number | null
+  passcode: string | null
   created_at: string
   updated_at: string
 }

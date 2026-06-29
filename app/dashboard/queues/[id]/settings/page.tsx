@@ -24,6 +24,7 @@ export default function QueueSettingsPage({ params }: { params: Promise<{ id: st
   const [avgService, setAvgService] = useState('5')
   const [maxTickets, setMaxTickets] = useState('')
   const [isAccepting, setIsAccepting] = useState(true)
+  const [passcode, setPasscode] = useState('')
 
   useEffect(() => {
     const supabase = createClient()
@@ -34,6 +35,7 @@ export default function QueueSettingsPage({ params }: { params: Promise<{ id: st
         setAvgService(String(q.avg_service_minutes))
         setMaxTickets(q.max_tickets ? String(q.max_tickets) : '')
         setIsAccepting(q.is_accepting)
+        setPasscode(q.passcode ?? '')
       }
     })
   }, [id])
@@ -47,6 +49,7 @@ export default function QueueSettingsPage({ params }: { params: Promise<{ id: st
         avg_service_minutes: parseInt(avgService, 10),
         is_accepting: isAccepting,
         max_tickets: maxTickets ? parseInt(maxTickets, 10) : null,
+        passcode: passcode.length === 4 ? passcode : null,
       })
       if (result.error) setError(result.error)
       else {
@@ -149,6 +152,35 @@ export default function QueueSettingsPage({ params }: { params: Promise<{ id: st
               <label htmlFor="accepting" className="text-sm text-text-secondary select-none">
                 Accepting new tickets
               </label>
+            </div>
+
+            <div className="space-y-1.5 pt-2 border-t border-bg-border">
+              <label className="label">Queue Passcode</label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={passcode}
+                  onChange={e => setPasscode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  placeholder="e.g. 1234"
+                  className="input w-28 font-mono tracking-widest text-center text-lg"
+                />
+                {passcode && (
+                  <button
+                    type="button"
+                    onClick={() => setPasscode('')}
+                    className="text-xs text-text-tertiary hover:text-danger transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-text-tertiary">
+                {passcode.length === 4
+                  ? 'Customers must enter this code before joining the queue.'
+                  : 'Enter a 4-digit code to require customers to verify before joining. Leave blank to disable.'}
+              </p>
             </div>
 
             {error && (

@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { JoinQueueForm } from './JoinQueueForm'
+import { PasscodeGate } from '@/components/customer/PasscodeGate'
 import type { Queue } from '@/types'
 import { PLATFORM } from '@/lib/platform-info'
 
@@ -67,7 +68,7 @@ export default async function JoinQueuePage({ params }: { params: Promise<{ slug
     )
   }
 
-  return (
+  const joinForm = (
     <div className="min-h-screen bg-bg-base flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
@@ -85,5 +86,18 @@ export default async function JoinQueuePage({ params }: { params: Promise<{ slug
         <JoinQueueForm queue={queue} businessName={businessName} />
       </div>
     </div>
+  )
+
+  if (!queue.passcode) return joinForm
+
+  return (
+    <PasscodeGate
+      queueId={queue.id}
+      queueSlug={queue.slug}
+      queueName={queue.name}
+      businessName={businessName}
+    >
+      {joinForm}
+    </PasscodeGate>
   )
 }

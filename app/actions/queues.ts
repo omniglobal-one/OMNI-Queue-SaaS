@@ -84,12 +84,14 @@ export async function updateQueueSettings({
   manual_delay_minutes,
   is_accepting,
   max_tickets,
+  passcode,
 }: {
   queue_id: string
   avg_service_minutes?: number
   manual_delay_minutes?: number
   is_accepting?: boolean
   max_tickets?: number | null
+  passcode?: string | null
 }): Promise<{ error?: string }> {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -100,6 +102,7 @@ export async function updateQueueSettings({
   if (manual_delay_minutes !== undefined) updates['manual_delay_minutes'] = manual_delay_minutes
   if (is_accepting !== undefined) updates['is_accepting'] = is_accepting
   if (max_tickets !== undefined) updates['max_tickets'] = max_tickets
+  if (passcode !== undefined) updates['passcode'] = passcode ?? null
 
   const { error } = await (supabase as unknown as ReturnType<typeof createAdminClient>)
     .from('queues')
@@ -109,6 +112,20 @@ export async function updateQueueSettings({
 
   if (error) return { error: error.message }
   return {}
+}
+
+export async function verifyQueuePasscode({
+  queue_slug,
+  passcode,
+}: {
+  queue_slug: string
+  passcode: string
+}): Promise<{ success: boolean }> {
+  const admin = createAdminClient()
+  const { data } = await admin.from('queues').select('passcode').eq('slug', queue_slug).single()
+  const queue = data as { passcode: string | null } | null
+  if (!queue?.passcode) return { success: true }
+  return { success: queue.passcode === passcode }
 }
 
 export async function setManualDelay({
