@@ -30,7 +30,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/q/') ||
     pathname.startsWith('/api/') ||
     pathname.startsWith('/login') ||
-    pathname.startsWith('/auth/')
+    pathname.startsWith('/auth/') ||
+    pathname.startsWith('/privacy')
   ) {
     if (user && (pathname === '/' || pathname.startsWith('/login'))) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
