@@ -43,7 +43,7 @@ export function QueueDashboardClient({
           <div className="xl:col-span-2 flex flex-col gap-4">
             <TodayStats tickets={tickets} queue={queue} />
             <QueueControls queue={queue} />
-            <CurrentlyServing ticket={currentTicket} />
+            <CurrentlyServing ticket={currentTicket} queue={queue} />
 
             <div className="card">
               <div className="p-4 border-b border-bg-border">
