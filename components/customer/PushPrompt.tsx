@@ -28,13 +28,21 @@ export function PushPrompt({ ticketId, queueId, alreadySubscribed }: {
     setLoading(true)
     setError(null)
     try {
-      const permission = await Notification.requestPermission()
-      if (permission !== 'granted') {
-        setError('Permission denied. Please enable notifications in your browser.')
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        setError('Push notifications are not supported in this browser.')
         return
       }
 
-      const reg = await navigator.serviceWorker.ready
+      const permission = await Notification.requestPermission()
+      if (permission !== 'granted') {
+        setError('Permission denied. Please enable notifications in your browser settings.')
+        return
+      }
+
+      const swTimeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Service worker not ready. Try reloading the page on the live site.')), 10000)
+      )
+      const reg = await Promise.race([navigator.serviceWorker.ready, swTimeout])
       const existing = await reg.pushManager.getSubscription()
       const sub = existing ?? await reg.pushManager.subscribe({
         userVisibleOnly: true,
