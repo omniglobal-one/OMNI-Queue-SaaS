@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { use } from 'react'
 import { updateQueueSettings, deleteQueue } from '@/app/actions/queues'
 import { Topbar } from '@/components/layout/Topbar'
+import { Input } from '@/components/ui/Input'
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { createClient } from '@/lib/supabase/client'
@@ -47,7 +49,10 @@ export default function QueueSettingsPage({ params }: { params: Promise<{ id: st
         max_tickets: maxTickets ? parseInt(maxTickets, 10) : null,
       })
       if (result.error) setError(result.error)
-      else setSaved(true)
+      else {
+        setSaved(true)
+        setTimeout(() => setSaved(false), 3000)
+      }
     })
   }
 
@@ -62,27 +67,78 @@ export default function QueueSettingsPage({ params }: { params: Promise<{ id: st
     return (
       <>
         <Topbar title="Queue Settings" />
-        <div className="p-4 sm:p-6 lg:p-8 text-text-tertiary">Loading…</div>
+        <div className="p-4 sm:p-6 lg:p-8">
+          <div className="skeleton h-64 rounded-lg max-w-2xl" />
+        </div>
       </>
     )
   }
 
   return (
     <>
-      <Topbar title={`Settings — ${queue.name}`} subtitle="Manage queue configuration" />
+      <Topbar
+        title={`${queue.name} — Settings`}
+        subtitle="Manage queue configuration"
+        actions={
+          <div className="flex items-center gap-3">
+            {saved && <Badge variant="success">Saved</Badge>}
+            <Button loading={isPending} onClick={handleSave}>Save Changes</Button>
+          </div>
+        }
+      />
       <div className="p-4 sm:p-6 lg:p-8">
-        <div className="max-w-lg space-y-6">
-          <div className="card p-6 flex flex-col gap-5">
-            <div>
-              <label className="label">Avg. Service Time (minutes)</label>
-              <input type="number" min={1} className="input w-28" value={avgService} onChange={e => setAvgService(e.target.value)} />
+        <div className="max-w-2xl space-y-6">
+
+          <div className="card p-6 space-y-4">
+            <h2 className="section-header">Queue Info</h2>
+            <div className="space-y-3 divide-y divide-bg-border">
+              <div className="flex items-center justify-between py-2 first:pt-0">
+                <span className="text-text-secondary text-sm">Name</span>
+                <span className="text-text-primary text-sm font-medium">{queue.name}</span>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-text-secondary text-sm">Mode</span>
+                <Badge variant="neutral">{queue.mode === 'auto' ? 'Auto Number' : 'Invoice Number'}</Badge>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-text-secondary text-sm">Join URL</span>
+                <span className="text-text-tertiary text-xs font-mono">/q/{queue.slug}</span>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-text-secondary text-sm">Status</span>
+                <Badge variant={queue.status === 'open' ? 'success' : queue.status === 'paused' ? 'warning' : 'neutral'}>
+                  {queue.status.charAt(0).toUpperCase() + queue.status.slice(1)}
+                </Badge>
+              </div>
             </div>
-            <div>
-              <label className="label">Max Tickets</label>
-              <input type="number" min={1} className="input w-28" value={maxTickets} onChange={e => setMaxTickets(e.target.value)} placeholder="∞" />
-              <p className="text-xs text-text-tertiary mt-1">Leave blank for unlimited</p>
-            </div>
-            <div className="flex items-center gap-3">
+          </div>
+
+          <div className="card p-6 space-y-4">
+            <h2 className="section-header">Settings</h2>
+
+            <Input
+              id="avgService"
+              label="Average Service Time (minutes)"
+              type="number"
+              min={1}
+              value={avgService}
+              onChange={e => setAvgService(e.target.value)}
+              className="w-28"
+            />
+
+            <Input
+              id="maxTickets"
+              label="Max Tickets per Session"
+              type="number"
+              min={1}
+              value={maxTickets}
+              onChange={e => setMaxTickets(e.target.value)}
+              placeholder="Unlimited"
+              className="w-28"
+              hint="Leave blank for unlimited"
+            />
+
+            <div className="flex items-center gap-3 pt-1">
               <input
                 type="checkbox"
                 id="accepting"
@@ -90,25 +146,33 @@ export default function QueueSettingsPage({ params }: { params: Promise<{ id: st
                 onChange={e => setIsAccepting(e.target.checked)}
                 className="w-4 h-4 accent-primary"
               />
-              <label htmlFor="accepting" className="text-sm text-text-secondary">Accepting new tickets</label>
+              <label htmlFor="accepting" className="text-sm text-text-secondary select-none">
+                Accepting new tickets
+              </label>
             </div>
+
             {error && (
-              <div className="bg-danger/10 border border-danger/30 rounded-lg p-3 text-danger text-sm">{error}</div>
+              <div className="bg-danger/10 border border-danger/30 rounded-lg p-3 text-danger text-sm">
+                {error}
+              </div>
             )}
-            {saved && <p className="text-success text-sm">Settings saved.</p>}
-            <Button onClick={handleSave} loading={isPending}>Save Settings</Button>
           </div>
 
-          <div className="card p-6 border-danger/20">
-            <h2 className="font-semibold text-danger mb-2">Danger Zone</h2>
-            <p className="text-text-tertiary text-sm mb-4">Deleting this queue will permanently remove all tickets and events.</p>
+          <div className="card p-6">
+            <h2 className="font-semibold text-danger mb-1">Danger Zone</h2>
+            <p className="text-text-tertiary text-sm mb-4">
+              Deleting this queue permanently removes all tickets and history.
+            </p>
             <Button variant="danger" onClick={() => setDeleteModal(true)}>Delete Queue</Button>
           </div>
+
         </div>
       </div>
 
       <Modal open={deleteModal} onClose={() => setDeleteModal(false)} title="Delete Queue">
-        <p className="text-text-secondary mb-6">Are you sure you want to delete <strong>{queue.name}</strong>? This cannot be undone.</p>
+        <p className="text-text-secondary mb-6">
+          Are you sure you want to delete <strong>{queue.name}</strong>? This cannot be undone.
+        </p>
         <div className="flex gap-3">
           <Button variant="ghost" onClick={() => setDeleteModal(false)} className="flex-1">Cancel</Button>
           <Button variant="danger" onClick={handleDelete} loading={isPending} className="flex-1">Delete</Button>

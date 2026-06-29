@@ -75,7 +75,7 @@ export function QueueDashboardClient({
           </div>
 
           <div className="flex flex-col gap-4">
-            <QRCodeCard slug={queue.slug} queueName={queue.name} />
+            <QRCodeCard queueId={queue.id} slug={queue.slug} queueName={queue.name} />
           </div>
         </div>
       </div>

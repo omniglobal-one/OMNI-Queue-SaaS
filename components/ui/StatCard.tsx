@@ -14,7 +14,7 @@ export function StatCard({
   highlight?: boolean
 }) {
   return (
-    <div className={`stat-card ${highlight ? 'border-primary/30 shadow-glow' : ''}`}>
+    <div className={`stat-card ${highlight ? 'border-primary/30' : ''}`}>
       <div className="flex items-start justify-between mb-3">
         <span className="text-sm text-text-secondary">{label}</span>
         {icon && <span className="text-text-tertiary">{icon}</span>}

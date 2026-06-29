@@ -20,7 +20,7 @@ export function StatusCard({
   const waitMinutes = isCalled || isCompleted ? 0 : pendingAhead * queue.avg_service_minutes + queue.manual_delay_minutes
 
   return (
-    <div className={`card p-8 text-center ${isCalled ? 'border-primary/40 shadow-glow' : ''}`}>
+    <div className={`card p-8 text-center ${isCalled ? 'border-primary/40' : ''}`}>
       <div className="mb-6">
         {isCalled && (
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-full mb-4">
