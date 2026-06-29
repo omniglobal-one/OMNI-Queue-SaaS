@@ -19,7 +19,7 @@ export default async function SettingsPage() {
     <>
       <Topbar title="Account Settings" subtitle="Your profile and account details" />
       <div className="p-4 sm:p-6 lg:p-8">
-        <div className="max-w-2xl space-y-6">
+        <div className="max-w-2xl mx-auto space-y-6">
 
           <div className="card p-6">
             <h2 className="section-header">Profile</h2>
