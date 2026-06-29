@@ -88,30 +88,33 @@ export function TicketViewClient({
           </>
         )}
 
-        <div className="text-center space-y-3">
+        <div className="card p-4 space-y-2">
+          <p className="text-sm font-medium text-text-primary">Save your place in the queue</p>
+          <p className="text-xs text-text-tertiary">Copy this link to come back to your ticket from any device or browser.</p>
           <button
             onClick={handleCopyLink}
-            className="inline-flex items-center gap-1.5 text-xs text-text-secondary hover:text-text-primary transition-colors"
+            className={`btn-ghost w-full flex items-center justify-center gap-2 transition-colors ${copied ? 'text-success' : ''}`}
           >
             {copied ? (
               <>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <path d="M13 4L6 11l-3-3" />
                 </svg>
-                Link copied!
+                Copied!
               </>
             ) : (
               <>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="9" y="9" width="13" height="13" rx="2" />
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                 </svg>
-                Copy link to this page
+                Copy link to my ticket
               </>
             )}
           </button>
-          <p className="text-xs text-text-tertiary">Keep this page open to track your position in real time.</p>
         </div>
+
+        <p className="text-center text-xs text-text-tertiary">Keep this page open to track your position in real time.</p>
       </div>
     </div>
   )
