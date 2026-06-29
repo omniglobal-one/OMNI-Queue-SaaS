@@ -17,12 +17,8 @@ export default function LandingPage() {
       <nav className="border-b border-white/10 px-6 h-14 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <rect x="1" y="1" width="5" height="5" rx="1" fill="white" />
-              <rect x="8" y="1" width="5" height="5" rx="1" fill="white" opacity="0.6" />
-              <rect x="1" y="8" width="5" height="5" rx="1" fill="white" opacity="0.6" />
-              <rect x="8" y="8" width="5" height="5" rx="1" fill="white" opacity="0.3" />
-            </svg>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icon.png" alt="" className="w-5 h-5 rounded" />
           </div>
           <span className="font-semibold text-white text-sm">{PLATFORM.name}</span>
         </div>

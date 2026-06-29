@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { PLATFORM } from '@/lib/platform-info'
 
@@ -31,25 +32,24 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-base flex flex-col items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center mb-3">
-            <svg width="20" height="20" viewBox="0 0 14 14" fill="none">
-              <rect x="1" y="1" width="5" height="5" rx="1" fill="white" />
-              <rect x="8" y="1" width="5" height="5" rx="1" fill="white" opacity="0.6" />
-              <rect x="1" y="8" width="5" height="5" rx="1" fill="white" opacity="0.6" />
-              <rect x="8" y="8" width="5" height="5" rx="1" fill="white" opacity="0.3" />
-            </svg>
+    <div className="min-h-screen bg-bg-base flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/icon.png" alt="" className="w-6 h-6 rounded" />
+            </div>
+            <span className="text-xl font-bold text-text-primary">{PLATFORM.name}</span>
           </div>
-          <h1 className="text-xl font-semibold text-text-primary">{PLATFORM.name}</h1>
-          <p className="text-text-tertiary text-sm mt-1">Merchant sign in</p>
+          <h1 className="text-2xl font-semibold text-text-primary">Welcome back</h1>
+          <p className="text-text-secondary mt-1">Sign in to your merchant account</p>
         </div>
 
         <div className="card p-6">
-          <form onSubmit={handleLogin} className="flex flex-col gap-4">
+          <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="label" htmlFor="email">Email</label>
+              <label htmlFor="email" className="label">Email address</label>
               <input
                 id="email"
                 type="email"
@@ -62,7 +62,7 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <label className="label" htmlFor="password">Password</label>
+              <label htmlFor="password" className="label">Password</label>
               <input
                 id="password"
                 type="password"
@@ -74,18 +74,28 @@ export default function LoginPage() {
                 autoComplete="current-password"
               />
             </div>
-            {error && (
-              <p className="text-danger text-sm bg-danger/10 px-3 py-2 rounded-lg">{error}</p>
+            {error !== null && (
+              <div className="bg-danger/10 border border-danger/30 rounded-lg p-3 text-danger text-sm">{error}</div>
             )}
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full h-10 mt-1"
+              className="btn-primary w-full justify-center flex items-center gap-2"
             >
-              {loading ? 'Signing in…' : 'Sign in'}
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Signing in…
+                </>
+              ) : 'Sign in'}
             </button>
           </form>
         </div>
+
+        <p className="text-center text-text-tertiary text-sm mt-6">{PLATFORM.name} — {PLATFORM.tagline}</p>
+        <p className="text-center text-xs text-text-tertiary mt-2">
+          <Link href="/privacy" className="hover:underline">Privacy Policy &amp; Terms of Use</Link>
+        </p>
       </div>
     </div>
   )

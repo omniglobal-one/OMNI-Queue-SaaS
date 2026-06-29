@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { use } from 'react'
 import { updateQueueSettings, deleteQueue } from '@/app/actions/queues'
+import { Topbar } from '@/components/layout/Topbar'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { createClient } from '@/lib/supabase/client'
 import type { Queue } from '@/types'
-import { useEffect } from 'react'
 
 export default function QueueSettingsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -58,41 +58,53 @@ export default function QueueSettingsPage({ params }: { params: Promise<{ id: st
     })
   }
 
-  if (!queue) return <div className="p-8 text-text-tertiary">Loading…</div>
+  if (!queue) {
+    return (
+      <>
+        <Topbar title="Queue Settings" />
+        <div className="p-4 sm:p-6 lg:p-8 text-text-tertiary">Loading…</div>
+      </>
+    )
+  }
 
   return (
-    <div className="max-w-lg">
-      <h1 className="page-header">Queue Settings — {queue.name}</h1>
+    <>
+      <Topbar title={`Settings — ${queue.name}`} subtitle="Manage queue configuration" />
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="max-w-lg space-y-6">
+          <div className="card p-6 flex flex-col gap-5">
+            <div>
+              <label className="label">Avg. Service Time (minutes)</label>
+              <input type="number" min={1} className="input w-28" value={avgService} onChange={e => setAvgService(e.target.value)} />
+            </div>
+            <div>
+              <label className="label">Max Tickets</label>
+              <input type="number" min={1} className="input w-28" value={maxTickets} onChange={e => setMaxTickets(e.target.value)} placeholder="∞" />
+              <p className="text-xs text-text-tertiary mt-1">Leave blank for unlimited</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="accepting"
+                checked={isAccepting}
+                onChange={e => setIsAccepting(e.target.checked)}
+                className="w-4 h-4 accent-primary"
+              />
+              <label htmlFor="accepting" className="text-sm text-text-secondary">Accepting new tickets</label>
+            </div>
+            {error && (
+              <div className="bg-danger/10 border border-danger/30 rounded-lg p-3 text-danger text-sm">{error}</div>
+            )}
+            {saved && <p className="text-success text-sm">Settings saved.</p>}
+            <Button onClick={handleSave} loading={isPending}>Save Settings</Button>
+          </div>
 
-      <div className="card p-6 flex flex-col gap-5 mb-6">
-        <div>
-          <label className="label">Avg. Service Time (minutes)</label>
-          <input type="number" min={1} className="input w-28" value={avgService} onChange={e => setAvgService(e.target.value)} />
+          <div className="card p-6 border-danger/20">
+            <h2 className="font-semibold text-danger mb-2">Danger Zone</h2>
+            <p className="text-text-tertiary text-sm mb-4">Deleting this queue will permanently remove all tickets and events.</p>
+            <Button variant="danger" onClick={() => setDeleteModal(true)}>Delete Queue</Button>
+          </div>
         </div>
-        <div>
-          <label className="label">Max Tickets</label>
-          <input type="number" min={1} className="input w-28" value={maxTickets} onChange={e => setMaxTickets(e.target.value)} placeholder="∞" />
-          <p className="text-xs text-text-tertiary mt-1">Leave blank for unlimited</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <input
-            type="checkbox"
-            id="accepting"
-            checked={isAccepting}
-            onChange={e => setIsAccepting(e.target.checked)}
-            className="w-4 h-4 accent-primary"
-          />
-          <label htmlFor="accepting" className="text-sm text-text-secondary">Accepting new tickets</label>
-        </div>
-        {error && <p className="text-danger text-sm">{error}</p>}
-        {saved && <p className="text-success text-sm">Settings saved.</p>}
-        <Button onClick={handleSave} loading={isPending}>Save Settings</Button>
-      </div>
-
-      <div className="card p-6 border-danger/20">
-        <h2 className="font-semibold text-danger mb-2">Danger Zone</h2>
-        <p className="text-text-tertiary text-sm mb-4">Deleting this queue will permanently remove all tickets and events.</p>
-        <Button variant="danger" onClick={() => setDeleteModal(true)}>Delete Queue</Button>
       </div>
 
       <Modal open={deleteModal} onClose={() => setDeleteModal(false)} title="Delete Queue">
@@ -102,6 +114,6 @@ export default function QueueSettingsPage({ params }: { params: Promise<{ id: st
           <Button variant="danger" onClick={handleDelete} loading={isPending} className="flex-1">Delete</Button>
         </div>
       </Modal>
-    </div>
+    </>
   )
 }

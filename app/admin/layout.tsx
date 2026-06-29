@@ -5,7 +5,7 @@ import { DashboardShell } from '@/components/layout/DashboardShell'
 import { Sidebar } from '@/components/layout/Sidebar'
 import type { Profile, Role } from '@/types'
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -13,7 +13,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const admin = createAdminClient()
   const { data: profileRaw } = await admin.from('profiles').select('*').eq('id', user.id).single()
   const profile = profileRaw as Profile | null
-  if (!profile) redirect('/login')
+  if (!profile || profile.role !== 'admin') redirect('/dashboard')
 
   return (
     <DashboardShell sidebar={
