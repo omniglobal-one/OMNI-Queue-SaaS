@@ -68,53 +68,60 @@ export function TicketViewClient({
         )}
       </header>
 
-      <div className="max-w-sm mx-auto px-4 py-6 flex flex-col gap-4">
+      <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
         <ReconnectBanner isConnected={isConnected} />
-        <StatusCard
-          ticket={ticket}
-          queue={queue}
-          livePosition={livePosition}
-          pendingAhead={pendingAhead}
-        />
 
-        {isActive && (
-          <>
-            <PushPrompt
-              ticketId={ticket.id}
-              queueId={queue.id}
-              alreadySubscribed={!!ticket.push_subscription}
-            />
-            <PhoneAddForm ticketId={ticket.id} currentPhone={ticket.customer_phone} />
-          </>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+          {/* Left — ticket status */}
+          <StatusCard
+            ticket={ticket}
+            queue={queue}
+            livePosition={livePosition}
+            pendingAhead={pendingAhead}
+          />
 
-        <div className="card p-4 space-y-2">
-          <p className="text-sm font-medium text-text-primary">Save your place in the queue</p>
-          <p className="text-xs text-text-tertiary">Copy this link to come back to your ticket from any device or browser.</p>
-          <button
-            onClick={handleCopyLink}
-            className={`btn-ghost w-full flex items-center justify-center gap-2 transition-colors ${copied ? 'text-success' : ''}`}
-          >
-            {copied ? (
+          {/* Right — actions */}
+          <div className="flex flex-col gap-4">
+            {isActive && (
               <>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <path d="M13 4L6 11l-3-3" />
-                </svg>
-                Copied!
-              </>
-            ) : (
-              <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="9" y="9" width="13" height="13" rx="2" />
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                </svg>
-                Copy link to my ticket
+                <PushPrompt
+                  ticketId={ticket.id}
+                  queueId={queue.id}
+                  alreadySubscribed={!!ticket.push_subscription}
+                />
+                <PhoneAddForm ticketId={ticket.id} currentPhone={ticket.customer_phone} />
               </>
             )}
-          </button>
-        </div>
 
-        <p className="text-center text-xs text-text-tertiary">Keep this page open to track your position in real time.</p>
+            <div className="card p-4 space-y-2 text-center ring-1 ring-primary/40 shadow-lg shadow-primary/20">
+              <p className="text-sm font-medium text-text-primary">Save your place in the queue</p>
+              <p className="text-xs text-text-tertiary">Copy this link to come back to your ticket from any device or browser.</p>
+              <button
+                onClick={handleCopyLink}
+                className={`btn-ghost w-full flex items-center justify-center gap-2 transition-colors ${copied ? 'text-success' : ''}`}
+              >
+                {copied ? (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <path d="M13 4L6 11l-3-3" />
+                    </svg>
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                    Copy link to my ticket
+                  </>
+                )}
+              </button>
+            </div>
+
+            <p className="text-center text-xs text-text-tertiary">Keep this page open to track your position in real time.</p>
+          </div>
+        </div>
       </div>
     </div>
   )
