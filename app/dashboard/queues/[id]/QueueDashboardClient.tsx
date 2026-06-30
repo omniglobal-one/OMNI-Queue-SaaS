@@ -9,6 +9,7 @@ import { TicketRow } from '@/components/merchant/TicketRow'
 import { TodayStats } from '@/components/merchant/TodayStats'
 import { QRCodeCard } from '@/components/merchant/QRCodeCard'
 import { ReconnectBanner } from '@/components/customer/ReconnectBanner'
+import { EmptyState } from '@/components/ui/EmptyState'
 import type { Queue, Ticket } from '@/types'
 
 export function QueueDashboardClient({
@@ -50,7 +51,7 @@ export function QueueDashboardClient({
                 <h2 className="section-header mb-0">Waiting ({pendingTickets.length})</h2>
               </div>
               {pendingTickets.length === 0 ? (
-                <p className="p-6 text-center text-text-tertiary text-sm">No one waiting</p>
+                <EmptyState title="No one waiting" subtitle="Customers will appear here when they join the queue." />
               ) : (
                 <div>
                   {pendingTickets.map((t, i) => (

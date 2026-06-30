@@ -15,10 +15,8 @@ export function QRCodeCard({
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
-  const url =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/q/${slug}`
-      : `/q/${slug}`
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://queue.omnidesk.one'
+  const url = `${baseUrl}/q/${slug}`
 
   useEffect(() => {
     void QRCode.toDataURL(url, {

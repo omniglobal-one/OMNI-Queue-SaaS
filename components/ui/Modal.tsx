@@ -7,11 +7,13 @@ export function Modal({
   onClose,
   title,
   children,
+  className,
 }: {
   open: boolean
   onClose: () => void
   title: string
   children: ReactNode
+  className?: string
 }) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -33,14 +35,17 @@ export function Modal({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={onClose}
+      aria-modal="true"
+      role="dialog"
+      aria-labelledby="modal-title"
     >
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
       <div
-        className="relative card w-full max-w-lg shadow-xl"
+        className={`relative card w-full max-w-lg shadow-xl${className ? ` ${className}` : ''}`}
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-5 border-b border-bg-border">
-          <h2 className="text-lg font-semibold text-text-primary">{title}</h2>
+          <h2 id="modal-title" className="text-lg font-semibold text-text-primary">{title}</h2>
           <button
             onClick={onClose}
             className="text-text-tertiary hover:text-text-primary transition-colors p-1 rounded"

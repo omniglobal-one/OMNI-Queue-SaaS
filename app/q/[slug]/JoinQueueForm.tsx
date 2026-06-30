@@ -43,8 +43,9 @@ export function JoinQueueForm({ queue, businessName }: { queue: Queue; businessN
       <form onSubmit={handleJoin} className="flex flex-col gap-4">
         {queue.mode === 'invoice' && (
           <div>
-            <label className="label">Invoice / Reference Number *</label>
+            <label htmlFor="invoice" className="label">Invoice / Reference Number *</label>
             <input
+              id="invoice"
               className="input"
               value={invoice}
               onChange={e => setInvoice(e.target.value)}
@@ -54,8 +55,9 @@ export function JoinQueueForm({ queue, businessName }: { queue: Queue; businessN
           </div>
         )}
         <div>
-          <label className="label">Your Name (optional)</label>
+          <label htmlFor="name" className="label">Your Name (optional)</label>
           <input
+            id="name"
             className="input"
             value={name}
             onChange={e => setName(e.target.value)}
@@ -63,8 +65,9 @@ export function JoinQueueForm({ queue, businessName }: { queue: Queue; businessN
           />
         </div>
         <div>
-          <label className="label">WhatsApp Number (optional)</label>
+          <label htmlFor="phone" className="label">WhatsApp Number (optional)</label>
           <input
+            id="phone"
             type="tel"
             className="input"
             value={phone}

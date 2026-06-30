@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Topbar } from '@/components/layout/Topbar'
 import { QueueStatusBadge } from '@/components/ui/Badge'
+import { EmptyState } from '@/components/ui/EmptyState'
 import type { Queue } from '@/types'
 
 export default async function QueuesPage() {
@@ -25,9 +26,13 @@ export default async function QueuesPage() {
       />
       <div className="p-4 sm:p-6 lg:p-8">
         {queues.length === 0 ? (
-          <div className="card p-12 text-center">
-            <p className="text-text-tertiary mb-4">No queues yet. Create one to start accepting customers.</p>
-            <Link href="/dashboard/queues/new" className="btn-primary h-10">Create your first queue</Link>
+          <div className="card">
+            <EmptyState
+              title="No queues yet"
+              subtitle="Create a queue to start accepting customers."
+              ctaLabel="Create your first queue"
+              ctaHref="/dashboard/queues/new"
+            />
           </div>
         ) : (
           <div className="card divide-y divide-bg-border">
@@ -40,7 +45,7 @@ export default async function QueuesPage() {
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-text-primary">{q.name}</p>
                   {q.description && <p className="text-sm text-text-tertiary truncate">{q.description}</p>}
-                  <p className="text-xs text-text-tertiary mono mt-0.5">omniqueue.app/q/{q.slug}</p>
+                  <p className="text-xs text-text-tertiary mono mt-0.5">queue.omnidesk.one/q/{q.slug}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <QueueStatusBadge status={q.status} />

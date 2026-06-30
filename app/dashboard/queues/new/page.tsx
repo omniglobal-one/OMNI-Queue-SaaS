@@ -91,7 +91,7 @@ export default function NewQueuePage() {
                   />
                 </div>
                 <p className="text-text-tertiary text-xs">
-                  Customers join at: <span className="font-mono">omniqueue.app/q/{slug || 'your-slug'}</span>
+                  Customers join at: <span className="font-mono">queue.omnidesk.one/q/{slug || 'your-slug'}</span>
                 </p>
               </div>
             </div>
