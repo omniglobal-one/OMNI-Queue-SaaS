@@ -35,7 +35,7 @@ export function PhoneAddForm({ ticketId, currentPhone }: { ticketId: string; cur
       <div className="rounded-xl border border-success/30 bg-success/5 px-4 py-3 flex items-center gap-3">
         <WhatsAppIcon />
         <div className="flex-1 min-w-0">
-          <p className="text-xs text-text-tertiary leading-none mb-0.5">WhatsApp updates sent to</p>
+          <p className="text-xs text-text-tertiary leading-none mb-2">WhatsApp updates sent to</p>
           <p className="text-sm font-semibold text-text-primary font-mono">{phone}</p>
         </div>
         <button

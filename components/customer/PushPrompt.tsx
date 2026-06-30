@@ -95,7 +95,7 @@ export function PushPrompt({ ticketId, queueId, alreadySubscribed }: {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-text-primary">Notifications enabled</p>
-          <p className="text-xs text-text-tertiary mt-0.5">We&apos;ll alert you when it&apos;s your turn, even if this tab is closed.</p>
+          <p className="text-xs text-text-tertiary mt-1.5">We&apos;ll alert you when it&apos;s your turn, even if this tab is closed.</p>
         </div>
         <button
           onClick={handleDisable}
