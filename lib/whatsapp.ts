@@ -6,7 +6,6 @@ export function generateWhatsAppMessage({
   ticketNumber,
   invoiceNumber,
   businessName,
-  waitTime,
   customText,
 }: {
   template: WhatsAppTemplate
@@ -18,19 +17,55 @@ export function generateWhatsAppMessage({
   customText?: string
 }): string {
   const name = customerName || 'Customer'
+  const footer = `_Powered by OMNI Queue_`
+
   switch (template) {
-    case 'next_up':
-      return `Hi ${name}! Your ticket #${ticketNumber} at ${businessName} is coming up next. Please make your way to the counter now. Thank you!`
-    case 'ready':
-      return `Hi ${name}! Ticket #${ticketNumber}${invoiceNumber ? ` (Invoice #${invoiceNumber})` : ''} is ready at ${businessName}. Your estimated wait is now ${waitTime} mins. Please come to the counter.`
-    case 'no_show':
-      return `Hi ${name}, we called your number #${ticketNumber} at ${businessName} but couldn't reach you. Please return to the counter or speak to a staff member. Thank you.`
+    case 'next_up': {
+      const lines = [
+        `🎫 *Queue Update — ${businessName}*`,
+        '',
+        `Hi ${name}! Your number is almost up.`,
+        '',
+        `🎟️ *Ticket:* #${ticketNumber}`,
+        '',
+        `Please make your way to the counter now. We'll be with you shortly!`,
+        '',
+        footer,
+      ]
+      return lines.join('\n')
+    }
+    case 'ready': {
+      const lines = [
+        `✅ *Your Turn Now — ${businessName}*`,
+        '',
+        `Hi ${name}! Your ticket is now being called.`,
+        '',
+        `🎟️ *Ticket:* #${ticketNumber}`,
+      ]
+      if (invoiceNumber) lines.push(`🧾 *Invoice:* #${invoiceNumber}`)
+      lines.push('', `Please come to the counter immediately. Thank you!`, '', footer)
+      return lines.join('\n')
+    }
+    case 'no_show': {
+      const lines = [
+        `⚠️ *Missed Turn — ${businessName}*`,
+        '',
+        `Hi ${name}, we called your number but couldn't reach you.`,
+        '',
+        `🎟️ *Ticket:* #${ticketNumber}`,
+        '',
+        `Please return to the counter or speak to a staff member.`,
+        '',
+        footer,
+      ]
+      return lines.join('\n')
+    }
     case 'custom':
       return customText ?? ''
   }
 }
 
 export function generateWhatsAppLink(phone: string, message: string): string {
-  const e164 = phone.replace(/^\+/, '')
-  return `https://wa.me/${e164}?text=${encodeURIComponent(message)}`
+  const cleaned = phone.replace(/[^\d+]/g, '').replace(/^\+/, '')
+  return `https://wa.me/${cleaned}?text=${encodeURIComponent(message)}`
 }
