@@ -43,7 +43,7 @@ export default function LoginPage() {
             <span className="text-xl font-bold text-text-primary">{PLATFORM.name}</span>
           </div>
           <h1 className="text-2xl font-semibold text-text-primary">Welcome back</h1>
-          <p className="text-text-secondary mt-1">Sign in to your merchant account</p>
+          <p className="text-text-secondary mt-1">Sign in to your account to continue</p>
         </div>
 
         <div className="card p-6">
@@ -92,7 +92,11 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <p className="text-center text-text-tertiary text-sm mt-6">{PLATFORM.name} — {PLATFORM.tagline}</p>
+        <p className="hidden text-center text-text-tertiary text-sm mt-6">
+          Don&apos;t have an account?{' '}
+          <Link href="/register" className="text-text-primary font-medium hover:underline">Create one</Link>
+        </p>
+        <p className="text-center text-text-tertiary text-sm mt-2">{PLATFORM.name} — {PLATFORM.tagline}</p>
         <p className="text-center text-xs text-text-tertiary mt-2">
           <Link href="/privacy" className="hover:underline">Privacy Policy &amp; Terms of Use</Link>
         </p>
