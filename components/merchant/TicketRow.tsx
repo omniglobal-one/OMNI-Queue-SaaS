@@ -79,6 +79,7 @@ export function TicketRow({
             <span className="text-xs text-text-tertiary italic truncate">{ticket.notes}</span>
           )}
         </div>
+        <p className="text-[10px] text-text-tertiary mono mt-0.5 truncate">{ticket.id}</p>
       </div>
 
       {/* Inline actions — only for waiting tickets */}

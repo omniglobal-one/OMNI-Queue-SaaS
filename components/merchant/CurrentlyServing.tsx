@@ -77,6 +77,7 @@ export function CurrentlyServing({ ticket, queue }: { ticket: Ticket | null; que
           {ticket.invoice_number && (
             <p className="text-sm text-text-secondary">Invoice #{ticket.invoice_number}</p>
           )}
+          <p className="text-xs text-text-tertiary mono">{ticket.id}</p>
         </div>
       </div>
 
