@@ -77,7 +77,7 @@ interface SidebarProps {
 export function Sidebar({ role, userEmail, userName }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
-  const navItems = role === 'admin' ? [...merchantNav, ...adminNav] : merchantNav
+  const navItems = role === 'admin' ? adminNav : merchantNav
 
   async function handleSignOut() {
     const supabase = createClient()
