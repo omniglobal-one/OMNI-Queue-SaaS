@@ -42,7 +42,7 @@ export function CurrentlyServing({ ticket, queue }: { ticket: Ticket | null; que
   }
 
   const calledTime = ticket.called_at
-    ? new Date(ticket.called_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    ? new Date(ticket.called_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
     : null
 
   return (
