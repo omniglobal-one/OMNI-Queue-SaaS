@@ -72,8 +72,10 @@ export default async function JoinQueuePage({ params }: { params: Promise<{ slug
     <div className="min-h-screen bg-bg-base flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icon.png" alt="" className="w-10 h-10 rounded-xl mx-auto mb-3" />
+          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center mx-auto mb-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icon.png" alt="" className="w-7 h-7 rounded-lg" />
+          </div>
           <h1 className="text-xl font-semibold text-text-primary">{queue.name}</h1>
           <p className="text-text-tertiary text-sm mt-1">{businessName} · {PLATFORM.name}</p>
         </div>
