@@ -16,6 +16,7 @@ export default async function DashboardPage() {
   const { data: profileRaw } = await admin.from('profiles').select('*').eq('id', user.id).single()
   const profile = profileRaw as Profile | null
   if (!profile) redirect('/login')
+  if (profile.role === 'admin') redirect('/admin')
 
   const { data: queuesRaw } = await admin.from('queues').select('*').eq('merchant_id', user.id).order('created_at')
   const queues = (queuesRaw ?? []) as Queue[]

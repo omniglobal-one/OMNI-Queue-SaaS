@@ -11,7 +11,13 @@ export default async function QueueDetailPage({ params }: { params: Promise<{ id
   if (!user) redirect('/login')
 
   const admin = createAdminClient()
-  const { data: queueRaw } = await admin.from('queues').select('*').eq('id', id).eq('merchant_id', user.id).single()
+  const { data: profileRaw } = await admin.from('profiles').select('role').eq('id', user.id).single()
+  const isAdmin = (profileRaw as { role: string } | null)?.role === 'admin'
+
+  const queueQuery = isAdmin
+    ? admin.from('queues').select('*').eq('id', id).single()
+    : admin.from('queues').select('*').eq('id', id).eq('merchant_id', user.id).single()
+  const { data: queueRaw } = await queueQuery
   const queue = queueRaw as Queue | null
   if (!queue) notFound()
 

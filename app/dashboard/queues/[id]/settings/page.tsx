@@ -21,6 +21,7 @@ export default function QueueSettingsPage({ params }: { params: Promise<{ id: st
   const [saved, setSaved] = useState(false)
   const [deleteModal, setDeleteModal] = useState(false)
 
+  const [name, setName] = useState('')
   const [avgService, setAvgService] = useState('5')
   const [maxTickets, setMaxTickets] = useState('')
   const [isAccepting, setIsAccepting] = useState(true)
@@ -32,6 +33,7 @@ export default function QueueSettingsPage({ params }: { params: Promise<{ id: st
       if (data) {
         const q = data as Queue
         setQueue(q)
+        setName(q.name)
         setAvgService(String(q.avg_service_minutes))
         setMaxTickets(q.max_tickets ? String(q.max_tickets) : '')
         setIsAccepting(q.is_accepting)
@@ -46,6 +48,7 @@ export default function QueueSettingsPage({ params }: { params: Promise<{ id: st
     startTransition(async () => {
       const result = await updateQueueSettings({
         queue_id: id,
+        name,
         avg_service_minutes: parseInt(avgService, 10),
         is_accepting: isAccepting,
         max_tickets: maxTickets ? parseInt(maxTickets, 10) : null,
@@ -95,9 +98,14 @@ export default function QueueSettingsPage({ params }: { params: Promise<{ id: st
           <div className="card p-6 space-y-4">
             <h2 className="section-header">Queue Info</h2>
             <div className="space-y-3 divide-y divide-bg-border">
-              <div className="flex items-center justify-between py-2 first:pt-0">
-                <span className="text-text-secondary text-sm">Name</span>
-                <span className="text-text-primary text-sm font-medium">{queue.name}</span>
+              <div className="flex items-center justify-between py-2 first:pt-0 gap-4">
+                <span className="text-text-secondary text-sm shrink-0">Name</span>
+                <input
+                  className="input text-sm text-right max-w-[200px]"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  placeholder="Queue name"
+                />
               </div>
               <div className="flex items-center justify-between py-2">
                 <span className="text-text-secondary text-sm">Mode</span>

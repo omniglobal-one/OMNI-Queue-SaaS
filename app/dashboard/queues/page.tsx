@@ -13,6 +13,9 @@ export default async function QueuesPage() {
   if (!user) redirect('/login')
 
   const admin = createAdminClient()
+  const { data: profileRaw } = await admin.from('profiles').select('role').eq('id', user.id).single()
+  if ((profileRaw as { role: string } | null)?.role === 'admin') redirect('/admin')
+
   const { data: queuesRaw } = await admin.from('queues').select('*').eq('merchant_id', user.id).order('created_at')
   const queues = (queuesRaw ?? []) as Queue[]
 

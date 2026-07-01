@@ -10,6 +10,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   QUEUE_NOT_ACCEPTING: 'This queue is not accepting new tickets right now.',
   QUEUE_FULL: 'Queue is full. Please check back later.',
   DUPLICATE_INVOICE: 'This invoice number is already in the queue.',
+  PASSCODE_REQUIRED: 'Passcode required. Please refresh and enter the queue passcode.',
 }
 
 export function JoinQueueForm({ queue, businessName }: { queue: Queue; businessName: string }) {
@@ -23,9 +24,11 @@ export function JoinQueueForm({ queue, businessName }: { queue: Queue; businessN
   function handleJoin(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+    const passcode = sessionStorage.getItem(`queue_passcode_${queue.id}`) ?? undefined
     startTransition(async () => {
       const result = await joinQueue({
         queue_slug: queue.slug,
+        ...(passcode ? { passcode } : {}),
         ...(name ? { customer_name: name } : {}),
         ...(phone ? { customer_phone: phone } : {}),
         ...(queue.mode === 'invoice' && invoice ? { invoice_number: invoice } : {}),

@@ -5,6 +5,20 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { sendPushNotification } from '@/lib/push'
 import type { Queue, Ticket, QueueStatus } from '@/types'
 
+const NAME_MAX = 100
+const DESC_MAX = 300
+const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,98}[a-z0-9]$/
+
+function validateQueueInputs(name: string, slug: string, avgService: number): string | null {
+  if (!name.trim()) return 'Queue name is required'
+  if (name.trim().length > NAME_MAX) return `Queue name must be ${NAME_MAX} characters or less`
+  if (!SLUG_RE.test(slug)) return 'Slug must be lowercase letters, numbers and hyphens only'
+  if (!Number.isInteger(avgService) || avgService < 1 || avgService > 480) {
+    return 'Average service time must be between 1 and 480 minutes'
+  }
+  return null
+}
+
 export async function createQueue({
   name,
   description,
@@ -24,6 +38,16 @@ export async function createQueue({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
 
+  const validationError = validateQueueInputs(name, slug, avg_service_minutes)
+  if (validationError) return { error: validationError }
+  if (description && description.length > DESC_MAX) {
+    return { error: `Description must be ${DESC_MAX} characters or less` }
+  }
+  if (max_tickets !== undefined && (!Number.isInteger(max_tickets) || max_tickets < 1)) {
+    return { error: 'Max tickets must be a positive integer' }
+  }
+  if (!['auto', 'invoice'].includes(mode)) return { error: 'Invalid mode' }
+
   const existing = await (supabase as unknown as ReturnType<typeof createAdminClient>)
     .from('queues').select('id').eq('slug', slug).maybeSingle()
   if (existing.data) return { error: 'A queue with this URL slug already exists.' }
@@ -32,8 +56,8 @@ export async function createQueue({
     .from('queues')
     .insert({
       merchant_id: user.id,
-      name,
-      description: description ?? null,
+      name: name.trim(),
+      description: description?.trim() ?? null,
       mode,
       avg_service_minutes,
       ...(max_tickets ? { max_tickets } : {}),
@@ -42,7 +66,7 @@ export async function createQueue({
     .select('id')
     .single()
 
-  if (error) return { error: error.message }
+  if (error) return { error: 'Failed to create queue. Please try again.' }
   return { id: (data as { id: string }).id }
 }
 
@@ -57,13 +81,16 @@ export async function updateQueueStatus({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
 
+  // Runtime check — TypeScript types are stripped at runtime
+  if (!(['open', 'paused', 'closed'] as const).includes(status)) return { error: 'Invalid status' }
+
   const { error } = await (supabase as unknown as ReturnType<typeof createAdminClient>)
     .from('queues')
     .update({ status, updated_at: new Date().toISOString() })
     .eq('id', queue_id)
     .eq('merchant_id', user.id)
 
-  if (error) return { error: error.message }
+  if (error) return { error: 'Failed to update queue status. Please try again.' }
 
   // Log the event
   await (supabase as unknown as ReturnType<typeof createAdminClient>)
@@ -80,6 +107,7 @@ export async function updateQueueStatus({
 
 export async function updateQueueSettings({
   queue_id,
+  name,
   avg_service_minutes,
   manual_delay_minutes,
   is_accepting,
@@ -87,6 +115,7 @@ export async function updateQueueSettings({
   passcode,
 }: {
   queue_id: string
+  name?: string
   avg_service_minutes?: number
   manual_delay_minutes?: number
   is_accepting?: boolean
@@ -97,7 +126,28 @@ export async function updateQueueSettings({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
 
+  // Server-side validation
+  if (name !== undefined && name.trim().length > NAME_MAX) {
+    return { error: `Queue name must be ${NAME_MAX} characters or less` }
+  }
+  if (avg_service_minutes !== undefined &&
+    (!Number.isInteger(avg_service_minutes) || avg_service_minutes < 1 || avg_service_minutes > 480)) {
+    return { error: 'Average service time must be between 1 and 480 minutes' }
+  }
+  if (manual_delay_minutes !== undefined &&
+    (!Number.isInteger(manual_delay_minutes) || manual_delay_minutes < 0 || manual_delay_minutes > 480)) {
+    return { error: 'Manual delay must be between 0 and 480 minutes' }
+  }
+  if (max_tickets !== undefined && max_tickets !== null &&
+    (!Number.isInteger(max_tickets) || max_tickets < 1)) {
+    return { error: 'Max tickets must be a positive integer' }
+  }
+  if (passcode !== null && passcode !== undefined && !/^\d{4}$/.test(passcode)) {
+    return { error: 'Passcode must be exactly 4 digits' }
+  }
+
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
+  if (name !== undefined && name.trim()) updates['name'] = name.trim()
   if (avg_service_minutes !== undefined) updates['avg_service_minutes'] = avg_service_minutes
   if (manual_delay_minutes !== undefined) updates['manual_delay_minutes'] = manual_delay_minutes
   if (is_accepting !== undefined) updates['is_accepting'] = is_accepting
@@ -110,7 +160,7 @@ export async function updateQueueSettings({
     .eq('id', queue_id)
     .eq('merchant_id', user.id)
 
-  if (error) return { error: error.message }
+  if (error) return { error: 'Failed to save settings. Please try again.' }
   return {}
 }
 
@@ -120,12 +170,23 @@ export async function verifyQueuePasscode({
 }: {
   queue_slug: string
   passcode: string
-}): Promise<{ success: boolean }> {
+}): Promise<{ success: boolean; error?: string }> {
+  // Validate input format before hitting the DB
+  if (!/^\d{4}$/.test(passcode)) return { success: false, error: 'Invalid passcode format' }
+
   const admin = createAdminClient()
-  const { data } = await admin.from('queues').select('passcode').eq('slug', queue_slug).single()
-  const queue = data as { passcode: string | null } | null
-  if (!queue?.passcode) return { success: true }
-  return { success: queue.passcode === passcode }
+  const { data } = await admin.from('queues').select('id, passcode').eq('slug', queue_slug).single()
+  const queue = data as { id: string; passcode: string | null } | null
+  if (!queue) return { success: false }
+  if (!queue.passcode) return { success: true }
+
+  // Constant-time comparison to prevent timing attacks
+  const correct = queue.passcode
+  let mismatch = correct.length ^ passcode.length
+  for (let i = 0; i < Math.max(correct.length, passcode.length); i++) {
+    mismatch |= (correct.charCodeAt(i % correct.length) ^ passcode.charCodeAt(i % passcode.length))
+  }
+  return { success: mismatch === 0 }
 }
 
 export async function setManualDelay({
@@ -139,13 +200,17 @@ export async function setManualDelay({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
 
+  if (!Number.isInteger(manual_delay_minutes) || manual_delay_minutes < 0 || manual_delay_minutes > 480) {
+    return { error: 'Delay must be between 0 and 480 minutes' }
+  }
+
   const { error } = await (supabase as unknown as ReturnType<typeof createAdminClient>)
     .from('queues')
     .update({ manual_delay_minutes, updated_at: new Date().toISOString() })
     .eq('id', queue_id)
     .eq('merchant_id', user.id)
 
-  if (error) return { error: error.message }
+  if (error) return { error: 'Failed to save delay. Please try again.' }
 
   await (supabase as unknown as ReturnType<typeof createAdminClient>)
     .from('queue_events')
@@ -285,6 +350,10 @@ export async function markComplete({
   const ticket = ticketRaw as { queue_id: string } | null
   if (!ticket) return { error: 'Ticket not found' }
 
+  // Verify the ticket's queue belongs to the calling user
+  const { data: queueOwner } = await admin.from('queues').select('id').eq('id', ticket.queue_id).eq('merchant_id', user.id).single()
+  if (!queueOwner) return { error: 'Forbidden' }
+
   await admin.from('tickets').update({ status: 'completed', completed_at: completedAt, updated_at: completedAt }).eq('id', ticket_id)
   await admin.from('queues').update({ current_ticket_id: null, updated_at: completedAt }).eq('id', ticket.queue_id)
   await admin.from('queue_events').insert({ queue_id: ticket.queue_id, ticket_id, event_type: 'completed', actor_id: user.id, payload: {} })
@@ -308,6 +377,10 @@ export async function skipTicket({
   const ticket = ticketRaw as { queue_id: string; status: string } | null
   if (!ticket) return { error: 'Ticket not found' }
 
+  // Verify the ticket's queue belongs to the calling user
+  const { data: queueOwner } = await admin.from('queues').select('id').eq('id', ticket.queue_id).eq('merchant_id', user.id).single()
+  if (!queueOwner) return { error: 'Forbidden' }
+
   await admin.from('tickets').update({ status: 'skipped', skipped_at: skippedAt, updated_at: skippedAt }).eq('id', ticket_id)
   await admin.from('queue_events').insert({ queue_id: ticket.queue_id, ticket_id, event_type: 'skipped', actor_id: user.id, payload: {} })
 
@@ -325,6 +398,6 @@ export async function deleteQueue({ queue_id }: { queue_id: string }): Promise<{
 
   const admin = createAdminClient()
   const { error } = await admin.from('queues').delete().eq('id', queue_id).eq('merchant_id', user.id)
-  if (error) return { error: error.message }
+  if (error) return { error: 'Failed to delete queue. Please try again.' }
   return {}
 }

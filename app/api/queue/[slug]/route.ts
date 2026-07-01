@@ -1,9 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import type { Queue, Ticket } from '@/types'
+import type { Queue } from '@/types'
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
+  if (!slug || slug.length > 100) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
   const admin = createAdminClient()
 
   const { data: queueRaw } = await admin.from('queues').select('*').eq('slug', slug).single()
@@ -16,8 +18,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
     .eq('queue_id', queue.id)
     .eq('status', 'pending')
 
+  // Only expose the ticket number for the currently-served ticket, not the customer's name (PII)
   const { data: currentRaw } = queue.current_ticket_id
-    ? await admin.from('tickets').select('ticket_number, customer_name').eq('id', queue.current_ticket_id).single()
+    ? await admin.from('tickets').select('ticket_number').eq('id', queue.current_ticket_id).single()
     : { data: null }
 
   return NextResponse.json({

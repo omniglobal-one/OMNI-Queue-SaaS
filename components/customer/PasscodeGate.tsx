@@ -5,6 +5,7 @@ import { verifyQueuePasscode } from '@/app/actions/queues'
 import { PLATFORM } from '@/lib/platform-info'
 
 const SESSION_KEY = (queueId: string) => `queue_access_${queueId}`
+const PASSCODE_KEY = (queueId: string) => `queue_passcode_${queueId}`
 
 export function PasscodeGate({
   queueId,
@@ -48,6 +49,7 @@ export function PasscodeGate({
     setLoading(false)
     if (success) {
       sessionStorage.setItem(SESSION_KEY(queueId), '1')
+      sessionStorage.setItem(PASSCODE_KEY(queueId), code)
       setUnlocked(true)
     } else {
       setError('Incorrect passcode. Please try again.')

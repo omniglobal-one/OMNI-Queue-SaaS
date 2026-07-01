@@ -26,5 +26,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     if (idx >= 0) { livePosition = idx + 1; pendingAhead = idx }
   }
 
-  return NextResponse.json({ ...ticket, live_position: livePosition, pending_ahead: pendingAhead })
+  // Strip sensitive fields before returning to unauthenticated callers.
+  // push_subscription contains private browser crypto keys; customer_phone and
+  // notes are merchant/PII data that customers don't need via this public API.
+  const { push_subscription, customer_phone, notes, ...safeTicket } = ticket
+
+  return NextResponse.json({ ...safeTicket, live_position: livePosition, pending_ahead: pendingAhead })
 }
