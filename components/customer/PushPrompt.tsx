@@ -59,7 +59,7 @@ export function PushPrompt({ ticketId, queueId, alreadySubscribed }: {
       })
       setSubscribed(true)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to enable notifications')
+      setError('Failed to enable notifications. Please check your browser permissions and try again.')
     } finally {
       setLoading(false)
     }
@@ -78,7 +78,7 @@ export function PushPrompt({ ticketId, queueId, alreadySubscribed }: {
       await unsubscribeFromPush({ ticket_id: ticketId })
       setSubscribed(false)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to disable notifications')
+      setError('Failed to disable notifications. Please try again.')
     } finally {
       setLoading(false)
     }
