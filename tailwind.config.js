@@ -8,8 +8,8 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: '#1E40AF',
-        'primary-hover': '#1E3A8A',
+        primary: '#4D7C0F',
+        'primary-hover': '#3F6212',
         secondary: '#F59E0B',
         danger: '#DC2626',
         success: '#059669',
@@ -40,7 +40,8 @@ module.exports = {
         dashboard: '1280px',
       },
       boxShadow: {
-        glow: '0 0 24px rgba(30, 64, 175, 0.35)',
+        card: '0 1px 2px rgba(0,0,0,0.05)',
+        glow: '0 0 24px rgba(77, 124, 15, 0.35)',
       },
     },
   },
