@@ -77,7 +77,7 @@ export function JoinQueueForm({ queue, businessName }: { queue: Queue; businessN
             onChange={e => setPhone(e.target.value)}
             placeholder="+60123456789"
           />
-          <p className="text-xs text-text-tertiary mt-1">We&apos;ll send you WhatsApp updates when it&apos;s your turn.</p>
+          <p className="text-xs text-text-tertiary mt-1">Staff may WhatsApp you when it&apos;s your turn. Enable browser notifications on the next page for an automatic alert.</p>
         </div>
         {error && <p className="text-danger text-sm bg-danger/10 px-3 py-2 rounded-lg">{error}</p>}
         <Button type="submit" loading={isPending} className="w-full h-11">

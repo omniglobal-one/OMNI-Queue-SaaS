@@ -3,19 +3,19 @@
 import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { use } from 'react'
-import { updateQueueSettings, deleteQueue } from '@/app/actions/queues'
+import { updateQueueSettings, deleteQueue, getOwnQueue } from '@/app/actions/queues'
 import { Topbar } from '@/components/layout/Topbar'
 import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
-import { createClient } from '@/lib/supabase/client'
 import type { Queue } from '@/types'
 
 export default function QueueSettingsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
   const [queue, setQueue] = useState<Queue | null>(null)
+  const [notFound, setNotFound] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
@@ -28,19 +28,33 @@ export default function QueueSettingsPage({ params }: { params: Promise<{ id: st
   const [passcode, setPasscode] = useState('')
 
   useEffect(() => {
-    const supabase = createClient()
-    supabase.from('queues').select('*').eq('id', id).single().then(({ data }) => {
-      if (data) {
-        const q = data as Queue
-        setQueue(q)
-        setName(q.name)
-        setAvgService(String(q.avg_service_minutes))
-        setMaxTickets(q.max_tickets ? String(q.max_tickets) : '')
-        setIsAccepting(q.is_accepting)
-        setPasscode(q.passcode ?? '')
+    getOwnQueue(id).then(result => {
+      if ('error' in result) {
+        setNotFound(true)
+        return
       }
+      const q = result.queue
+      setQueue(q)
+      setName(q.name)
+      setAvgService(String(q.avg_service_minutes))
+      setMaxTickets(q.max_tickets ? String(q.max_tickets) : '')
+      setIsAccepting(q.is_accepting)
+      setPasscode(q.passcode ?? '')
     })
   }, [id])
+
+  if (notFound) {
+    return (
+      <>
+        <Topbar title="Queue Settings" />
+        <div className="p-4 sm:p-6 lg:p-8">
+          <div className="card p-6 max-w-3xl mx-auto text-center text-text-secondary">
+            This queue doesn&apos;t exist or you don&apos;t have access to it.
+          </div>
+        </div>
+      </>
+    )
+  }
 
   function handleSave() {
     setError(null)

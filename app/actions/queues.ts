@@ -19,6 +19,24 @@ function validateQueueInputs(name: string, slug: string, avgService: number): st
   return null
 }
 
+export async function getOwnQueue(queue_id: string): Promise<{ queue: Queue } | { error: string }> {
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized' }
+
+  const admin = createAdminClient()
+  const { data: profileRaw } = await admin.from('profiles').select('role').eq('id', user.id).single()
+  const isAdmin = (profileRaw as { role: string } | null)?.role === 'admin'
+
+  const queueQuery = isAdmin
+    ? admin.from('queues').select('*').eq('id', queue_id).single()
+    : admin.from('queues').select('*').eq('id', queue_id).eq('merchant_id', user.id).single()
+  const { data: queueRaw } = await queueQuery
+  if (!queueRaw) return { error: 'Queue not found' }
+
+  return { queue: queueRaw as Queue }
+}
+
 export async function createQueue({
   name,
   description,
@@ -233,7 +251,7 @@ export async function callNext({
   // Lock the queue row to prevent concurrent callNext
   const { data: queueRaw, error: qErr } = await admin
     .from('queues')
-    .select('id, status, current_ticket_id')
+    .select('id, slug, status, current_ticket_id')
     .eq('id', queue_id)
     .eq('merchant_id', user.id)
     .single()
@@ -302,7 +320,7 @@ export async function callNext({
         payload: {
           title: 'OMNI Queue',
           body: `Ticket #${nextTicket.ticket_number} — it's your turn! Please come to the counter.`,
-          ticketUrl: `${process.env.NEXT_PUBLIC_APP_URL}/q/${queue_id}/ticket/${nextTicket.id}`,
+          ticketUrl: `${process.env.NEXT_PUBLIC_APP_URL}/q/${queue.slug}/ticket/${nextTicket.id}`,
           ticketId: nextTicket.id,
         },
       })
@@ -321,7 +339,7 @@ export async function callNext({
         payload: {
           title: 'OMNI Queue',
           body: `You're next! Ticket #${upNext.ticket_number} — please be ready.`,
-          ticketUrl: `${process.env.NEXT_PUBLIC_APP_URL}/q/${queue_id}/ticket/${upNext.id}`,
+          ticketUrl: `${process.env.NEXT_PUBLIC_APP_URL}/q/${queue.slug}/ticket/${upNext.id}`,
           ticketId: upNext.id,
         },
       })

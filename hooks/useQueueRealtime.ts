@@ -1,8 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import { getTicketWithPosition } from '@/app/actions/tickets'
 import type { Ticket, Queue } from '@/types'
+
+const POLL_INTERVAL_MS = 4000
 
 export interface QueueRealtimeState {
   ticket: Ticket | null
@@ -12,9 +14,15 @@ export interface QueueRealtimeState {
   isConnected: boolean
 }
 
+// Polls the existing getTicketWithPosition server action instead of subscribing to Postgres
+// changes directly as anon. The tickets table has no anonymous SELECT grant (see migration
+// 004_close_public_data_leaks.sql) — direct anon reads of `tickets` exposed every customer's
+// name and phone number platform-wide, with no scoping to "just this ticket." The server
+// action already computes exactly what this hook needs (the caller's own ticket, its queue,
+// and its live position) via the service-role client, without ever returning other customers'
+// rows to the browser.
 export function useQueueRealtime({
   ticketId,
-  queueId,
   initialTicket,
   initialQueue,
   initialPosition,
@@ -32,54 +40,30 @@ export function useQueueRealtime({
   const [livePosition, setLivePosition] = useState(initialPosition)
   const [pendingAhead, setPendingAhead] = useState(initialPendingAhead)
   const [isConnected, setIsConnected] = useState(false)
-  const supabase = useRef(createClient())
+  const inFlight = useRef(false)
+
+  const poll = useCallback(async () => {
+    if (inFlight.current) return
+    inFlight.current = true
+    try {
+      const result = await getTicketWithPosition(ticketId)
+      if (result.ticket) setTicket(result.ticket)
+      if (result.queue) setQueue(result.queue)
+      setLivePosition(result.livePosition)
+      setPendingAhead(result.pendingAhead)
+      setIsConnected(true)
+    } catch {
+      setIsConnected(false)
+    } finally {
+      inFlight.current = false
+    }
+  }, [ticketId])
 
   useEffect(() => {
-    const client = supabase.current
-
-    const channel = client
-      .channel(`queue-${queueId}-ticket-${ticketId}`)
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'tickets',
-        filter: `queue_id=eq.${queueId}`,
-      }, async () => {
-        // Refetch the full pending list to recalculate position
-        const { data: ticketData } = await client
-          .from('tickets').select('*').eq('id', ticketId).single()
-        if (ticketData) setTicket(ticketData as Ticket)
-
-        const { data: pendingData } = await client
-          .from('tickets')
-          .select('id')
-          .eq('queue_id', queueId)
-          .eq('status', 'pending')
-          .order('created_at', { ascending: true })
-
-        const pending = (pendingData ?? []) as { id: string }[]
-        const idx = pending.findIndex(t => t.id === ticketId)
-        if (idx >= 0) {
-          setLivePosition(idx + 1)
-          setPendingAhead(idx)
-        }
-      })
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'queues',
-        filter: `id=eq.${queueId}`,
-      }, async () => {
-        const { data: queueData } = await client
-          .from('queues').select('*').eq('id', queueId).single()
-        if (queueData) setQueue(queueData as Queue)
-      })
-      .subscribe(status => {
-        setIsConnected(status === 'SUBSCRIBED')
-      })
-
-    return () => { void client.removeChannel(channel) }
-  }, [ticketId, queueId])
+    poll()
+    const interval = setInterval(poll, POLL_INTERVAL_MS)
+    return () => clearInterval(interval)
+  }, [poll])
 
   return { ticket, queue, livePosition, pendingAhead, isConnected }
 }

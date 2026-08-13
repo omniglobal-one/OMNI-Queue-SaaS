@@ -1,5 +1,6 @@
 'use server'
 
+import { headers } from 'next/headers'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { formatAutoTicketNumber, validateInvoiceNumber } from '@/lib/ticket-number'
@@ -38,6 +39,20 @@ export async function joinQueue({
   }
 
   const admin = createAdminClient()
+
+  // Rate limit: 8 joins per IP per minute. This is the only fully public write endpoint in
+  // the app (unauthenticated by design, so customers don't need an account) — without a
+  // limit here, a script could spam any queue's ticket counter indefinitely.
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim()
+    ?? headersList.get('x-real-ip')
+    ?? 'unknown'
+  const { data: allowed } = await admin.rpc('check_rate_limit', {
+    p_key: `join_queue:${ip}`,
+    p_max_count: 8,
+    p_window_seconds: 60,
+  })
+  if (allowed === false) return { error: 'Too many attempts. Please wait a minute and try again.' }
 
   // Fetch queue
   const { data: queueRaw, error: qErr } = await admin

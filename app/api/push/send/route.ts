@@ -43,8 +43,8 @@ export async function POST(req: NextRequest) {
   const { data: profileRaw } = await admin.from('profiles').select('role').eq('id', user.id).single()
   const isAdmin = (profileRaw as { role: string } | null)?.role === 'admin'
 
-  const { data: queueRaw } = await admin.from('queues').select('merchant_id').eq('id', ticket.queue_id).single()
-  const queue = queueRaw as { merchant_id: string } | null
+  const { data: queueRaw } = await admin.from('queues').select('merchant_id, slug').eq('id', ticket.queue_id).single()
+  const queue = queueRaw as { merchant_id: string; slug: string } | null
   if (!isAdmin && (!queue || queue.merchant_id !== user.id)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       payload: {
         title,
         body: msgBody,
-        ticketUrl: `${process.env.NEXT_PUBLIC_APP_URL}/q/${ticket.queue_id}/ticket/${ticket.id}`,
+        ticketUrl: `${process.env.NEXT_PUBLIC_APP_URL}/q/${queue?.slug ?? ticket.queue_id}/ticket/${ticket.id}`,
         ticketId: ticket.id,
       },
     })
