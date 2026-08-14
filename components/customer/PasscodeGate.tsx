@@ -93,12 +93,8 @@ export function PasscodeGate({
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
           <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center mx-auto mb-3">
-            <svg width="20" height="20" viewBox="0 0 14 14" fill="none">
-              <rect x="1" y="1" width="5" height="5" rx="1" fill="white" />
-              <rect x="8" y="1" width="5" height="5" rx="1" fill="white" opacity="0.6" />
-              <rect x="1" y="8" width="5" height="5" rx="1" fill="white" opacity="0.6" />
-              <rect x="8" y="8" width="5" height="5" rx="1" fill="white" opacity="0.3" />
-            </svg>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icon.png" alt="" className="w-7 h-7 rounded-lg" />
           </div>
           <h1 className="text-xl font-semibold text-text-primary">{queueName}</h1>
           <p className="text-text-tertiary text-sm mt-1">{businessName} · {PLATFORM.name}</p>
