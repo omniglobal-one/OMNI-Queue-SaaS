@@ -4,7 +4,7 @@ import { headers } from 'next/headers'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendPushNotification } from '@/lib/push'
-import { constantTimeEquals } from '@/lib/security'
+import { constantTimeEquals, getClientIp, signUnlockToken } from '@/lib/security'
 import type { Queue, Ticket, QueueStatus } from '@/types'
 
 const NAME_MAX = 100
@@ -190,7 +190,7 @@ export async function verifyQueuePasscode({
 }: {
   queue_slug: string
   passcode: string
-}): Promise<{ success: boolean; error?: string }> {
+}): Promise<{ success: boolean; error?: string; unlockToken?: string }> {
   // Validate input format before hitting the DB
   if (!/^\d{4}$/.test(passcode)) return { success: false, error: 'Invalid passcode format' }
 
@@ -199,9 +199,7 @@ export async function verifyQueuePasscode({
   // Rate limit: 8 attempts per IP per minute per queue. A 4-digit passcode is only 10,000
   // combinations — joinQueue's own passcode check already had this limit, but this action is
   // called independently by the passcode-gate screen and previously had none of its own.
-  const headersList = await headers()
-  const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim()
-    ?? headersList.get('x-real-ip') ?? 'unknown'
+  const ip = getClientIp(await headers())
   const { data: allowed } = await admin.rpc('check_rate_limit', {
     p_key: `verify_passcode:${ip}:${queue_slug}`, p_max_count: 8, p_window_seconds: 60,
   })
@@ -212,7 +210,11 @@ export async function verifyQueuePasscode({
   if (!queue) return { success: false }
   if (!queue.passcode) return { success: true }
 
-  return { success: constantTimeEquals(queue.passcode, passcode) }
+  if (!constantTimeEquals(queue.passcode, passcode)) return { success: false }
+
+  // Issue a short-lived signed token instead of making the caller hold onto (and later
+  // resubmit) the raw passcode — the browser never needs to persist the actual secret.
+  return { success: true, unlockToken: signUnlockToken(queue_slug) }
 }
 
 export async function setManualDelay({

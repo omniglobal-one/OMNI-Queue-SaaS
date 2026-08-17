@@ -24,11 +24,13 @@ export function JoinQueueForm({ queue, businessName }: { queue: Queue; businessN
   function handleJoin(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
-    const passcode = sessionStorage.getItem(`queue_passcode_${queue.id}`) ?? undefined
+    // The gate stores a short-lived signed unlock token, never the raw passcode — see
+    // components/customer/PasscodeGate.tsx and lib/security.ts.
+    const unlockToken = sessionStorage.getItem(`queue_unlock_token_${queue.id}`) ?? undefined
     startTransition(async () => {
       const result = await joinQueue({
         queue_slug: queue.slug,
-        ...(passcode ? { passcode } : {}),
+        ...(unlockToken ? { unlock_token: unlockToken } : {}),
         ...(name ? { customer_name: name } : {}),
         ...(phone ? { customer_phone: phone } : {}),
         ...(queue.mode === 'invoice' && invoice ? { invoice_number: invoice } : {}),

@@ -4,7 +4,7 @@ import { headers } from 'next/headers'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { formatAutoTicketNumber, validateInvoiceNumber } from '@/lib/ticket-number'
-import { constantTimeEquals } from '@/lib/security'
+import { constantTimeEquals, getClientIp, verifyUnlockToken } from '@/lib/security'
 import type { Queue, Ticket } from '@/types'
 
 const NAME_MAX = 100
@@ -19,12 +19,15 @@ export async function joinQueue({
   customer_phone,
   invoice_number,
   passcode,
+  unlock_token,
 }: {
   queue_slug: string
   customer_name?: string
   customer_phone?: string
   invoice_number?: string
   passcode?: string
+  /** Short-lived token from verifyQueuePasscode — preferred over resending the raw passcode. */
+  unlock_token?: string
 }): Promise<{ ticket_id: string; queue_slug: string } | { error: string }> {
   if (!queue_slug || queue_slug.length > 100) return { error: 'Invalid queue' }
 
@@ -44,10 +47,7 @@ export async function joinQueue({
   // Rate limit: 8 joins per IP per minute. This is the only fully public write endpoint in
   // the app (unauthenticated by design, so customers don't need an account) — without a
   // limit here, a script could spam any queue's ticket counter indefinitely.
-  const headersList = await headers()
-  const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim()
-    ?? headersList.get('x-real-ip')
-    ?? 'unknown'
+  const ip = getClientIp(await headers())
   const { data: allowed } = await admin.rpc('check_rate_limit', {
     p_key: `join_queue:${ip}`,
     p_max_count: 8,
@@ -67,10 +67,16 @@ export async function joinQueue({
   if (queue.status !== 'open') return { error: 'QUEUE_NOT_ACCEPTING' }
   if (!queue.is_accepting) return { error: 'QUEUE_FULL' }
 
-  // Passcode enforcement — constant-time comparison to prevent timing attacks
+  // Passcode enforcement. Prefer the short-lived signed token from verifyQueuePasscode (the
+  // normal path via PasscodeGate); fall back to a raw passcode for any other caller of this
+  // action. Either way this is re-verified here — the gate is a UX nicety, this check is the
+  // actual authorization boundary.
   if (queue.passcode) {
-    if (!passcode || !/^\d{4}$/.test(passcode)) return { error: 'PASSCODE_REQUIRED' }
-    if (!constantTimeEquals(queue.passcode, passcode)) return { error: 'PASSCODE_REQUIRED' }
+    const tokenOk = unlock_token ? verifyUnlockToken(queue_slug, unlock_token) : false
+    if (!tokenOk) {
+      if (!passcode || !/^\d{4}$/.test(passcode)) return { error: 'PASSCODE_REQUIRED' }
+      if (!constantTimeEquals(queue.passcode, passcode)) return { error: 'PASSCODE_REQUIRED' }
+    }
   }
 
   // Check max tickets

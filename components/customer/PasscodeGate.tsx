@@ -4,8 +4,17 @@ import { useRef, useState, useEffect, type ReactNode } from 'react'
 import { verifyQueuePasscode } from '@/app/actions/queues'
 import { PLATFORM } from '@/lib/platform-info'
 
-const SESSION_KEY = (queueId: string) => `queue_access_${queueId}`
-const PASSCODE_KEY = (queueId: string) => `queue_passcode_${queueId}`
+// Stores the short-lived server-signed unlock token (see lib/security.ts), never the raw
+// passcode — the browser no longer needs to hold the actual 4-digit secret. The token embeds
+// its own expiry (checked client-side only to decide whether to show the gate again; the
+// server independently re-verifies the signature and expiry at joinQueue time regardless).
+const UNLOCK_TOKEN_KEY = (queueId: string) => `queue_unlock_token_${queueId}`
+
+function readUnverifiedTokenExpiry(token: string): number | null {
+  const expiresStr = token.split('.')[0]
+  const expires = expiresStr ? Number(expiresStr) : NaN
+  return Number.isFinite(expires) ? expires : null
+}
 
 export function PasscodeGate({
   queueId,
@@ -34,9 +43,12 @@ export function PasscodeGate({
   const focus = (i: number) => refs[i]?.current?.focus()
 
   useEffect(() => {
-    if (sessionStorage.getItem(SESSION_KEY(queueId)) === '1') {
+    const existing = sessionStorage.getItem(UNLOCK_TOKEN_KEY(queueId))
+    const expires = existing ? readUnverifiedTokenExpiry(existing) : null
+    if (expires !== null && expires > Date.now()) {
       setUnlocked(true)
     } else {
+      if (existing) sessionStorage.removeItem(UNLOCK_TOKEN_KEY(queueId))
       focus(0)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -45,11 +57,10 @@ export function PasscodeGate({
   async function handleVerify(code: string) {
     setLoading(true)
     setError(null)
-    const { success } = await verifyQueuePasscode({ queue_slug: queueSlug, passcode: code })
+    const { success, unlockToken } = await verifyQueuePasscode({ queue_slug: queueSlug, passcode: code })
     setLoading(false)
     if (success) {
-      sessionStorage.setItem(SESSION_KEY(queueId), '1')
-      sessionStorage.setItem(PASSCODE_KEY(queueId), code)
+      if (unlockToken) sessionStorage.setItem(UNLOCK_TOKEN_KEY(queueId), unlockToken)
       setUnlocked(true)
     } else {
       setError('Incorrect passcode. Please try again.')
