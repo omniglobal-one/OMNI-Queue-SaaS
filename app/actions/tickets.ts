@@ -4,6 +4,7 @@ import { headers } from 'next/headers'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { formatAutoTicketNumber, validateInvoiceNumber } from '@/lib/ticket-number'
+import { constantTimeEquals } from '@/lib/security'
 import type { Queue, Ticket } from '@/types'
 
 const NAME_MAX = 100
@@ -69,12 +70,7 @@ export async function joinQueue({
   // Passcode enforcement — constant-time comparison to prevent timing attacks
   if (queue.passcode) {
     if (!passcode || !/^\d{4}$/.test(passcode)) return { error: 'PASSCODE_REQUIRED' }
-    const correct = queue.passcode
-    let mismatch = correct.length ^ passcode.length
-    for (let i = 0; i < Math.max(correct.length, passcode.length); i++) {
-      mismatch |= (correct.charCodeAt(i % correct.length) ^ passcode.charCodeAt(i % passcode.length))
-    }
-    if (mismatch !== 0) return { error: 'PASSCODE_REQUIRED' }
+    if (!constantTimeEquals(queue.passcode, passcode)) return { error: 'PASSCODE_REQUIRED' }
   }
 
   // Check max tickets
@@ -141,7 +137,17 @@ export async function joinQueue({
     .select('id')
     .single()
 
-  if (insertErr) return { error: 'Failed to join queue. Please try again.' }
+  if (insertErr) {
+    // The pre-checks above are a fast-path UX nicety; the DB trigger (enforce_max_tickets)
+    // and unique index (idx_tickets_unique_active_invoice) are the authoritative, race-safe
+    // enforcement — a concurrent request can still hit these even after passing the pre-check.
+    if (insertErr.message?.includes('max_tickets_exceeded')) {
+      await admin.from('queues').update({ is_accepting: false }).eq('id', queue.id)
+      return { error: 'QUEUE_FULL' }
+    }
+    if (insertErr.code === '23505') return { error: 'DUPLICATE_INVOICE' }
+    return { error: 'Failed to join queue. Please try again.' }
+  }
   const ticketId = (ticketRaw as { id: string }).id
 
   await admin.from('queue_events').insert({

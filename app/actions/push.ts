@@ -1,6 +1,7 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { isValidPushEndpoint } from '@/lib/security'
 
 export async function subscribeToPush({
   ticket_id,
@@ -31,6 +32,9 @@ export async function subscribeToPush({
     return { error: 'Invalid subscription data' }
   }
   if (subscription.endpoint.length > 2048 || subscription.keys.p256dh.length > 200 || subscription.keys.auth.length > 100) {
+    return { error: 'Invalid subscription data' }
+  }
+  if (!isValidPushEndpoint(subscription.endpoint)) {
     return { error: 'Invalid subscription data' }
   }
 

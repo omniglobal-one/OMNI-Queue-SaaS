@@ -1,8 +1,10 @@
 'use server'
 
+import { headers } from 'next/headers'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendPushNotification } from '@/lib/push'
+import { constantTimeEquals } from '@/lib/security'
 import type { Queue, Ticket, QueueStatus } from '@/types'
 
 const NAME_MAX = 100
@@ -193,18 +195,24 @@ export async function verifyQueuePasscode({
   if (!/^\d{4}$/.test(passcode)) return { success: false, error: 'Invalid passcode format' }
 
   const admin = createAdminClient()
+
+  // Rate limit: 8 attempts per IP per minute per queue. A 4-digit passcode is only 10,000
+  // combinations — joinQueue's own passcode check already had this limit, but this action is
+  // called independently by the passcode-gate screen and previously had none of its own.
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim()
+    ?? headersList.get('x-real-ip') ?? 'unknown'
+  const { data: allowed } = await admin.rpc('check_rate_limit', {
+    p_key: `verify_passcode:${ip}:${queue_slug}`, p_max_count: 8, p_window_seconds: 60,
+  })
+  if (allowed === false) return { success: false, error: 'Too many attempts. Please wait a minute and try again.' }
+
   const { data } = await admin.from('queues').select('id, passcode').eq('slug', queue_slug).single()
   const queue = data as { id: string; passcode: string | null } | null
   if (!queue) return { success: false }
   if (!queue.passcode) return { success: true }
 
-  // Constant-time comparison to prevent timing attacks
-  const correct = queue.passcode
-  let mismatch = correct.length ^ passcode.length
-  for (let i = 0; i < Math.max(correct.length, passcode.length); i++) {
-    mismatch |= (correct.charCodeAt(i % correct.length) ^ passcode.charCodeAt(i % passcode.length))
-  }
-  return { success: mismatch === 0 }
+  return { success: constantTimeEquals(queue.passcode, passcode) }
 }
 
 export async function setManualDelay({
@@ -248,68 +256,25 @@ export async function callNext({
 
   const admin = createAdminClient()
 
-  // Lock the queue row to prevent concurrent callNext
-  const { data: queueRaw, error: qErr } = await admin
-    .from('queues')
-    .select('id, slug, status, current_ticket_id')
-    .eq('id', queue_id)
-    .eq('merchant_id', user.id)
-    .single()
-
-  const queue = queueRaw as Queue | null
-  if (qErr || !queue) return { error: 'Queue not found' }
-  if (queue.status !== 'open') return { error: 'Queue is not open' }
-
-  // Get the next pending ticket
-  const { data: ticketsRaw } = await admin
-    .from('tickets')
-    .select('*')
-    .eq('queue_id', queue_id)
-    .eq('status', 'pending')
-    .order('created_at', { ascending: true })
-    .limit(2)
-
-  const tickets = (ticketsRaw ?? []) as Ticket[]
-  if (tickets.length === 0) return { error: 'NO_PENDING_TICKETS' }
-  const nextTicket = tickets[0]
-
-  if (!nextTicket) return { error: 'NO_PENDING_TICKETS' }
-
-  // Mark current in-progress ticket as completed if one exists
-  if (queue.current_ticket_id) {
-    await admin
-      .from('tickets')
-      .update({ status: 'completed', completed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-      .eq('id', queue.current_ticket_id)
-
-    await admin.from('queue_events').insert({
-      queue_id,
-      ticket_id: queue.current_ticket_id,
-      event_type: 'completed',
-      actor_id: user.id,
-      payload: {},
-    })
-  }
-
-  // Transition next ticket to in_progress
-  const calledAt = new Date().toISOString()
-  await admin
-    .from('tickets')
-    .update({ status: 'in_progress', called_at: calledAt, updated_at: calledAt })
-    .eq('id', nextTicket.id)
-
-  await admin
-    .from('queues')
-    .update({ current_ticket_id: nextTicket.id, updated_at: calledAt })
-    .eq('id', queue_id)
-
-  await admin.from('queue_events').insert({
-    queue_id,
-    ticket_id: nextTicket.id,
-    event_type: 'called_next',
-    actor_id: user.id,
-    payload: { ticket_number: nextTicket.ticket_number },
+  // The entire "find next ticket, complete the current one, transition the next one" sequence
+  // used to be several independent, unlocked statements from this function — concurrent calls
+  // (double-click, two staff sessions) could both select the same "next" ticket and both fire
+  // notifications for it. call_next_ticket does the whole transition atomically inside one
+  // transaction with the queue row locked (SELECT ... FOR UPDATE), so only one caller can ever
+  // "win" the race. Push notifications (external HTTP calls) stay here in application code —
+  // they can't run inside a Postgres function.
+  const { data: resultRaw, error: rpcErr } = await admin.rpc('call_next_ticket', {
+    p_queue_id: queue_id,
+    p_merchant_id: user.id,
+    p_actor_id: user.id,
   })
+  if (rpcErr) return { error: 'Failed to call next ticket' }
+
+  const result = resultRaw as { error?: string; queue_slug?: string; called?: Ticket; up_next?: Ticket | null }
+  if (result.error) return { error: result.error }
+
+  const nextTicket = result.called as Ticket
+  const queueSlug = result.queue_slug as string
 
   // Send push to the called ticket
   if (nextTicket.push_subscription) {
@@ -320,7 +285,7 @@ export async function callNext({
         payload: {
           title: 'OMNI Queue',
           body: `Ticket #${nextTicket.ticket_number} — it's your turn! Please come to the counter.`,
-          ticketUrl: `${process.env.NEXT_PUBLIC_APP_URL}/q/${queue.slug}/ticket/${nextTicket.id}`,
+          ticketUrl: `${process.env.NEXT_PUBLIC_APP_URL}/q/${queueSlug}/ticket/${nextTicket.id}`,
           ticketId: nextTicket.id,
         },
       })
@@ -329,8 +294,8 @@ export async function callNext({
     }
   }
 
-  // Send push to the NEXT in line (ticket[1])
-  const upNext = tickets[1]
+  // Send push to the NEXT in line
+  const upNext = result.up_next
   if (upNext?.push_subscription) {
     try {
       const sub = upNext.push_subscription as { endpoint: string; keys: { p256dh: string; auth: string } }
@@ -339,7 +304,7 @@ export async function callNext({
         payload: {
           title: 'OMNI Queue',
           body: `You're next! Ticket #${upNext.ticket_number} — please be ready.`,
-          ticketUrl: `${process.env.NEXT_PUBLIC_APP_URL}/q/${queue.slug}/ticket/${upNext.id}`,
+          ticketUrl: `${process.env.NEXT_PUBLIC_APP_URL}/q/${queueSlug}/ticket/${upNext.id}`,
           ticketId: upNext.id,
         },
       })
@@ -372,7 +337,17 @@ export async function markComplete({
   const { data: queueOwner } = await admin.from('queues').select('id').eq('id', ticket.queue_id).eq('merchant_id', user.id).single()
   if (!queueOwner) return { error: 'Forbidden' }
 
-  await admin.from('tickets').update({ status: 'completed', completed_at: completedAt, updated_at: completedAt }).eq('id', ticket_id)
+  // Idempotency guard: only transition tickets that are actually in progress. Without this,
+  // a replayed/duplicate request on an already-completed ticket would silently re-write
+  // timestamps and insert a duplicate audit event every time.
+  const { data: updated } = await admin
+    .from('tickets')
+    .update({ status: 'completed', completed_at: completedAt, updated_at: completedAt })
+    .eq('id', ticket_id)
+    .eq('status', 'in_progress')
+    .select('id')
+  if (!updated || updated.length === 0) return {}
+
   await admin.from('queues').update({ current_ticket_id: null, updated_at: completedAt }).eq('id', ticket.queue_id)
   await admin.from('queue_events').insert({ queue_id: ticket.queue_id, ticket_id, event_type: 'completed', actor_id: user.id, payload: {} })
 
@@ -399,7 +374,16 @@ export async function skipTicket({
   const { data: queueOwner } = await admin.from('queues').select('id').eq('id', ticket.queue_id).eq('merchant_id', user.id).single()
   if (!queueOwner) return { error: 'Forbidden' }
 
-  await admin.from('tickets').update({ status: 'skipped', skipped_at: skippedAt, updated_at: skippedAt }).eq('id', ticket_id)
+  // Idempotency guard: only transition tickets that are still pending/in-progress, matching
+  // the same reasoning as markComplete.
+  const { data: updated } = await admin
+    .from('tickets')
+    .update({ status: 'skipped', skipped_at: skippedAt, updated_at: skippedAt })
+    .eq('id', ticket_id)
+    .in('status', ['pending', 'in_progress'])
+    .select('id')
+  if (!updated || updated.length === 0) return {}
+
   await admin.from('queue_events').insert({ queue_id: ticket.queue_id, ticket_id, event_type: 'skipped', actor_id: user.id, payload: {} })
 
   if (ticket.status === 'in_progress') {
