@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { signOut } from '@/app/actions/auth'
 import { PLATFORM } from '@/lib/platform-info'
 import type { Role } from '@/types'
 
@@ -80,8 +80,7 @@ export function Sidebar({ role, userEmail, userName }: SidebarProps) {
   const navItems = role === 'admin' ? adminNav : merchantNav
 
   async function handleSignOut() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
+    await signOut()
     router.push('/login')
     router.refresh()
   }
