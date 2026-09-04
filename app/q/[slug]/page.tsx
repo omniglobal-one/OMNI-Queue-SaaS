@@ -23,15 +23,15 @@ export default async function JoinQueuePage({ params }: { params: Promise<{ slug
 
   if (queue.status === 'closed') {
     return (
-      <div className="min-h-screen bg-bg-base flex items-center justify-center px-4">
+      <div className="min-h-screen bg-omni-bg flex items-center justify-center px-4">
         <div className="card p-8 max-w-sm w-full text-center">
-          <div className="w-12 h-12 bg-bg-border rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-text-tertiary">
+          <div className="w-12 h-12 bg-omni-border rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-omni-ink-faint">
               <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
             </svg>
           </div>
-          <h1 className="font-semibold text-text-primary mb-2">Queue Closed</h1>
-          <p className="text-text-tertiary text-sm">{queue.name} at {businessName} is currently closed. Please come back later.</p>
+          <h1 className="font-semibold text-omni-ink mb-2">Queue Closed</h1>
+          <p className="text-omni-ink-faint text-sm">{queue.name} at {businessName} is currently closed. Please come back later.</p>
         </div>
       </div>
     )
@@ -39,10 +39,10 @@ export default async function JoinQueuePage({ params }: { params: Promise<{ slug
 
   if (!queue.is_accepting) {
     return (
-      <div className="min-h-screen bg-bg-base flex items-center justify-center px-4">
+      <div className="min-h-screen bg-omni-bg flex items-center justify-center px-4">
         <div className="card p-8 max-w-sm w-full text-center">
-          <h1 className="font-semibold text-text-primary mb-2">Queue Full</h1>
-          <p className="text-text-tertiary text-sm">No more tickets are being accepted right now. Please check back later.</p>
+          <h1 className="font-semibold text-omni-ink mb-2">Queue Full</h1>
+          <p className="text-omni-ink-faint text-sm">No more tickets are being accepted right now. Please check back later.</p>
         </div>
       </div>
     )
@@ -50,16 +50,16 @@ export default async function JoinQueuePage({ params }: { params: Promise<{ slug
 
   if (queue.status === 'paused') {
     return (
-      <div className="min-h-screen bg-bg-base flex items-center justify-center px-4">
+      <div className="min-h-screen bg-omni-bg flex items-center justify-center px-4">
         <div className="card p-8 max-w-sm w-full text-center">
-          <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-yellow-600">
+          <div className="w-12 h-12 bg-warning-soft rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-warning">
               <rect x="6" y="4" width="4" height="16" />
               <rect x="14" y="4" width="4" height="16" />
             </svg>
           </div>
-          <h1 className="font-semibold text-text-primary mb-2">Queue Paused</h1>
-          <p className="text-text-tertiary text-sm">{queue.name} is temporarily paused. You can still join but service is on hold.</p>
+          <h1 className="font-semibold text-omni-ink mb-2">Queue Paused</h1>
+          <p className="text-omni-ink-faint text-sm">{queue.name} is temporarily paused. You can still join but service is on hold.</p>
           <div className="mt-4">
             <JoinQueueForm queue={queue} businessName={businessName} />
           </div>
@@ -69,15 +69,15 @@ export default async function JoinQueuePage({ params }: { params: Promise<{ slug
   }
 
   const joinForm = (
-    <div className="min-h-screen bg-bg-base flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen bg-omni-bg flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center mx-auto mb-3">
+          <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center mx-auto mb-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/icon.png" alt="" className="w-7 h-7 rounded-lg" />
           </div>
-          <h1 className="text-xl font-semibold text-text-primary">{queue.name}</h1>
-          <p className="text-text-tertiary text-sm mt-1">{businessName} · {PLATFORM.name}</p>
+          <h1 className="text-xl font-semibold text-omni-ink">{queue.name}</h1>
+          <p className="text-omni-ink-faint text-sm mt-1">{businessName} · {PLATFORM.name}</p>
         </div>
         <JoinQueueForm queue={queue} businessName={businessName} />
       </div>

@@ -15,7 +15,7 @@
   }
 
   body {
-    @apply bg-bg-base text-text-primary font-sans;
+    @apply bg-omni-bg text-omni-ink font-sans;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -26,58 +26,58 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-bg-base;
+    @apply bg-omni-bg;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-bg-border rounded-full;
+    @apply bg-omni-border rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-text-tertiary;
+    @apply bg-omni-ink-faint;
   }
 }
 
 @layer components {
   .card {
-    @apply bg-bg-card border border-bg-border rounded-lg;
+    @apply bg-omni-surface border border-omni-border rounded-lg;
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover
+    @apply inline-flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover
            text-white text-sm font-medium px-4 py-2 rounded-lg
            transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 bg-bg-border text-text-primary
+    @apply inline-flex items-center justify-center gap-2 bg-omni-border text-omni-ink
            text-sm font-medium px-4 py-2 rounded-lg
            transition-opacity duration-150 hover:opacity-80
            disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 bg-danger hover:bg-red-700
+    @apply inline-flex items-center justify-center gap-2 bg-error hover:bg-error/90
            text-white text-sm font-medium px-4 py-2 rounded-lg
            transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-success {
-    @apply inline-flex items-center justify-center gap-2 bg-success hover:bg-green-700
+    @apply inline-flex items-center justify-center gap-2 bg-success hover:bg-success/90
            text-white text-sm font-medium px-4 py-2 rounded-lg
            transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 bg-bg-border text-text-primary
+    @apply inline-flex items-center justify-center gap-2 bg-omni-border text-omni-ink
            text-sm font-medium px-4 py-2 rounded-lg
            transition-opacity duration-150 hover:opacity-80
            disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .input {
-    @apply bg-bg-card border border-bg-border text-text-primary placeholder-text-tertiary
-           rounded-lg px-3 py-2 w-full focus:outline-none focus:border-primary
+    @apply bg-omni-surface border border-omni-border text-omni-ink placeholder-omni-ink-faint
+           rounded-lg px-3 py-2 w-full focus:outline-none focus:border-accent
            transition-colors duration-150;
   }
 
@@ -85,7 +85,9 @@
     appearance: none;
     -webkit-appearance: none;
     padding-right: 2.5rem;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%239CA3AF' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    /* omni-drift-ignore — data-URI SVG can't reference a CSS var; hex here
+       must be kept in sync by hand with --omni-ink-faint (mistakes.md R3). */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%238C8890' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
     background-size: 1.125rem 1.125rem;
@@ -93,11 +95,13 @@
   }
 
   select.input:focus {
+    /* omni-drift-ignore — kept in sync by hand with --omni-accent
+       (#4D7C0F, unchanged) per mistakes.md R3; not a CSS-var reference. */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%234D7C0F' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
 
   .label {
-    @apply text-text-secondary text-sm font-medium mb-1 block;
+    @apply text-omni-ink-soft text-sm font-medium mb-1 block;
   }
 
   .badge {
@@ -113,7 +117,7 @@
   }
 
   .badge-danger {
-    @apply badge bg-danger/20 text-danger;
+    @apply badge bg-error/20 text-error;
   }
 
   .badge-secondary {
@@ -121,19 +125,19 @@
   }
 
   .badge-neutral {
-    @apply badge bg-bg-border text-text-secondary;
+    @apply badge bg-omni-border text-omni-ink-soft;
   }
 
   .badge-primary {
-    @apply badge bg-primary/20 text-primary;
+    @apply badge bg-accent/20 text-accent;
   }
 
   .badge-live {
-    @apply badge bg-red-100 text-red-600 animate-pulse;
+    @apply badge bg-error/20 text-error animate-pulse;
   }
 
   .badge-warning {
-    @apply badge bg-yellow-100 text-yellow-700;
+    @apply badge bg-warning/20 text-warning;
   }
 
   .stat-card {
@@ -145,11 +149,11 @@
   }
 
   .table-base th {
-    @apply text-text-tertiary font-medium text-left py-2.5 px-3 sm:py-3 sm:px-4 border-b border-bg-border whitespace-nowrap;
+    @apply text-omni-ink-faint font-medium text-left py-2.5 px-3 sm:py-3 sm:px-4 border-b border-omni-border whitespace-nowrap;
   }
 
   .table-base td {
-    @apply py-2.5 px-3 sm:py-3 sm:px-4 border-b border-bg-border/50 text-text-secondary text-left;
+    @apply py-2.5 px-3 sm:py-3 sm:px-4 border-b border-omni-border/50 text-omni-ink-soft text-left;
   }
 
   .table-base tr:last-child td {
@@ -157,30 +161,30 @@
   }
 
   .table-base tr:hover td {
-    @apply bg-bg-border/30;
+    @apply bg-omni-border/30;
   }
 
   .skeleton {
-    @apply bg-bg-border animate-pulse rounded;
+    @apply bg-omni-border animate-pulse rounded;
   }
 
   .section-header {
-    @apply text-lg font-semibold text-text-primary mb-4;
+    @apply text-lg font-semibold text-omni-ink mb-4;
   }
 
   .page-title {
-    @apply text-2xl font-semibold text-text-primary;
+    @apply text-2xl font-semibold text-omni-ink;
   }
 
   .page-header {
-    @apply text-2xl font-semibold text-text-primary mb-6;
+    @apply text-2xl font-semibold text-omni-ink mb-6;
   }
 
   .section-title {
-    @apply text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-3;
+    @apply text-xs font-semibold text-omni-ink-faint uppercase tracking-wider mb-3;
   }
 
   .mono {
-    @apply font-mono text-sm text-text-tertiary;
+    @apply font-mono text-sm text-omni-ink-faint;
   }
 }

@@ -47,17 +47,17 @@ export function TicketViewClient({
   }
 
   return (
-    <div className="min-h-screen bg-bg-base">
-      <header className="h-14 bg-bg-card border-b border-bg-border flex items-center justify-between px-4">
+    <div className="min-h-screen bg-omni-bg">
+      <header className="h-14 bg-omni-surface border-b border-omni-border flex items-center justify-between px-4">
         <Link href={`/q/${queue.slug}`} className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
+          <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/icon.png" alt="" className="w-5 h-5 rounded" />
           </div>
-          <span className="font-semibold text-text-primary text-sm">{PLATFORM.name}</span>
+          <span className="font-semibold text-omni-ink text-sm">{PLATFORM.name}</span>
         </Link>
         {isActive && (
-          <div className={`flex items-center gap-1.5 text-xs ${isConnected ? 'text-success' : 'text-text-tertiary'}`}>
+          <div className={`flex items-center gap-1.5 text-xs ${isConnected ? 'text-success' : 'text-omni-ink-faint'}`}>
             <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-success animate-pulse' : 'bg-text-tertiary'}`} />
             {isConnected ? 'Live' : 'Connecting…'}
           </div>
@@ -89,9 +89,9 @@ export function TicketViewClient({
               </>
             )}
 
-            <div className="card p-4 space-y-2 text-center ring-1 ring-primary/40 shadow-lg shadow-primary/20">
-              <p className="text-sm font-medium text-text-primary">Save your place in the queue</p>
-              <p className="text-xs text-text-tertiary">Copy this link to come back to your ticket from any device or browser.</p>
+            <div className="card p-4 space-y-2 text-center ring-1 ring-accent/40 shadow-lg shadow-primary/20">
+              <p className="text-sm font-medium text-omni-ink">Save your place in the queue</p>
+              <p className="text-xs text-omni-ink-faint">Copy this link to come back to your ticket from any device or browser.</p>
               <button
                 onClick={handleCopyLink}
                 className={`btn-ghost w-full flex items-center justify-center gap-2 transition-colors ${copied ? 'text-success' : ''}`}
@@ -115,7 +115,7 @@ export function TicketViewClient({
               </button>
             </div>
 
-            <p className="text-center text-xs text-text-tertiary">Keep this page open to track your position in real time.</p>
+            <p className="text-center text-xs text-omni-ink-faint">Keep this page open to track your position in real time.</p>
           </div>
         </div>
       </div>

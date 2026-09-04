@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import type { FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
+import { Alert, Button, Input } from '@omni/ui'
 import { joinQueue } from '@/app/actions/tickets'
-import { Button } from '@/components/ui/Button'
 import type { Queue } from '@/types'
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -21,7 +22,7 @@ export function JoinQueueForm({ queue, businessName }: { queue: Queue; businessN
   const [invoice, setInvoice] = useState('')
   const [error, setError] = useState<string | null>(null)
 
-  function handleJoin(e: React.FormEvent) {
+  function handleJoin(e: FormEvent) {
     e.preventDefault()
     setError(null)
     // The gate stores a short-lived signed unlock token, never the raw passcode — see
@@ -44,46 +45,36 @@ export function JoinQueueForm({ queue, businessName }: { queue: Queue; businessN
   }
 
   return (
-    <div className="card p-6">
+    <div className="rounded-md border border-omni-border bg-omni-surface p-6">
       <form onSubmit={handleJoin} className="flex flex-col gap-4">
         {queue.mode === 'invoice' && (
-          <div>
-            <label htmlFor="invoice" className="label">Invoice / Reference Number *</label>
-            <input
-              id="invoice"
-              className="input"
-              value={invoice}
-              onChange={e => setInvoice(e.target.value)}
-              placeholder="e.g. INV-0012"
-              required
-            />
-          </div>
-        )}
-        <div>
-          <label htmlFor="name" className="label">Your Name (optional)</label>
-          <input
-            id="name"
-            className="input"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder="e.g. Ahmad"
+          <Input
+            label="Invoice / Reference Number *"
+            value={invoice}
+            onChange={e => setInvoice(e.target.value)}
+            placeholder="e.g. INV-0012"
+            required
           />
-        </div>
+        )}
+        <Input
+          label="Your Name (optional)"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          placeholder="e.g. Ahmad"
+        />
         <div>
-          <label htmlFor="phone" className="label">WhatsApp Number (optional)</label>
-          <input
-            id="phone"
+          <Input
+            label="WhatsApp Number (optional)"
             type="tel"
-            className="input"
             value={phone}
             onChange={e => setPhone(e.target.value)}
             placeholder="+60123456789"
           />
-          <p className="text-xs text-text-tertiary mt-1">Staff may WhatsApp you when it&apos;s your turn. Enable browser notifications on the next page for an automatic alert.</p>
+          <p className="text-xs text-omni-ink-faint mt-1">Staff may WhatsApp you when it&apos;s your turn. Enable browser notifications on the next page for an automatic alert.</p>
         </div>
-        {error && <p className="text-danger text-sm bg-danger/10 px-3 py-2 rounded-lg">{error}</p>}
-        <Button type="submit" loading={isPending} className="w-full h-11">
-          Join Queue
+        {error !== null && <Alert tone="error">{error}</Alert>}
+        <Button type="submit" disabled={isPending} className="w-full h-11 justify-center">
+          {isPending ? 'Joining…' : 'Join Queue'}
         </Button>
       </form>
     </div>
