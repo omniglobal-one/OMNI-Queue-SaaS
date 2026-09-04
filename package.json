@@ -9,10 +9,11 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
-    "test:integration": "node scripts/run-integration-tests.mjs"
+    "test:integration": "node scripts/run-integration-tests.mjs",
+    "lint:drift": "omni-check-drift"
   },
   "dependencies": {
-    "@omni/tokens": "github:omniglobal-one/omni-tokens#v1.0.1",
+    "@omni/tokens": "github:omniglobal-one/omni-tokens#v1.1.0",
     "@omni/ui": "github:omniglobal-one/omni-ui#v1.0.7",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",
