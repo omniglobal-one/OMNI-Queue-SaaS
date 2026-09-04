@@ -1,11 +1,11 @@
 import { redirect } from 'next/navigation'
+import type { ReactNode } from 'react'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { DashboardShell } from '@/components/layout/DashboardShell'
-import { Sidebar } from '@/components/layout/Sidebar'
+import { QueueShell } from '@/components/layout/QueueShell'
 import type { Profile, Role } from '@/types'
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -16,14 +16,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!profile) redirect('/login')
 
   return (
-    <DashboardShell sidebar={
-      <Sidebar
-        role={profile.role as Role}
-        userEmail={user.email ?? ''}
-        userName={profile.business_name}
-      />
-    }>
+    <QueueShell role={profile.role as Role} userEmail={user.email ?? ''} userName={profile.business_name}>
       {children}
-    </DashboardShell>
+    </QueueShell>
   )
 }
