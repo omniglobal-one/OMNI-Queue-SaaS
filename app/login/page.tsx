@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import type { FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Button, Input, Alert } from '@omni/ui'
 import { signIn } from '@/app/actions/auth'
 import { PLATFORM } from '@/lib/platform-info'
 
@@ -13,7 +15,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError(null)
@@ -31,72 +33,60 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-base flex items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center bg-omni-bg p-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/icon.png" alt="" className="w-6 h-6 rounded" />
-            </div>
-            <span className="text-xl font-bold text-text-primary">{PLATFORM.name}</span>
+        <div className="mb-6 flex items-center gap-2">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm bg-accent">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icon.png" alt="" className="h-5 w-5 rounded-sm" />
           </div>
-          <h1 className="text-2xl font-semibold text-text-primary">Welcome back</h1>
-          <p className="text-text-secondary mt-1">Sign in to your account to continue</p>
+          <span className="font-mono text-caption uppercase tracking-wide text-omni-ink-faint">
+            {PLATFORM.name}
+          </span>
         </div>
+        <h1 className="font-display text-h1-lg font-semibold text-omni-ink">Welcome back</h1>
+        <p className="mt-2 text-body text-omni-ink-soft">Sign in to your account to continue</p>
 
-        <div className="card p-6">
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label htmlFor="email" className="label">Email address</label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                className="input"
-                placeholder="you@example.com"
-                required
-                autoComplete="email"
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="label">Password</label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="input"
-                placeholder="••••••••"
-                required
-                autoComplete="current-password"
-              />
-            </div>
-            {error !== null && (
-              <div className="bg-danger/10 border border-danger/30 rounded-lg p-3 text-danger text-sm">{error}</div>
-            )}
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full justify-center flex items-center gap-2"
-            >
+        <div className="mt-6 rounded-md border border-omni-border bg-omni-surface p-6">
+          <form onSubmit={handleLogin} className="flex flex-col gap-4">
+            <Input
+              label="Email address"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              required
+              autoComplete="email"
+            />
+            <Input
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              autoComplete="current-password"
+            />
+            {error !== null && <Alert tone="error">{error}</Alert>}
+            <Button type="submit" disabled={loading} className="w-full justify-center">
               {loading ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-accent-contrast/30 border-t-accent-contrast" />
                   Signing in…
                 </>
-              ) : 'Sign in'}
-            </button>
+              ) : (
+                'Sign in'
+              )}
+            </Button>
           </form>
         </div>
 
-        <p className="hidden text-center text-text-tertiary text-sm mt-6">
+        <p className="hidden mt-6 text-center text-small text-omni-ink-faint">
           Don&apos;t have an account?{' '}
-          <Link href="/register" className="text-text-primary font-medium hover:underline">Create one</Link>
+          <Link href="/register" className="font-medium text-omni-ink hover:underline">Create one</Link>
         </p>
-        <p className="text-center text-text-tertiary text-sm mt-2">{PLATFORM.name} — {PLATFORM.tagline}</p>
-        <p className="text-center text-xs text-text-tertiary mt-2">
+        <p className="mt-2 text-center text-small text-omni-ink-faint">{PLATFORM.name} — {PLATFORM.tagline}</p>
+        <p className="mt-2 text-center text-caption text-omni-ink-faint">
           <Link href="/privacy" className="hover:underline">Privacy Policy &amp; Terms of Use</Link>
         </p>
       </div>

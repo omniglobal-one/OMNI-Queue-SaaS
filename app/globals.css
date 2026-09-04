@@ -1,3 +1,6 @@
+@import '@omni/tokens/tokens.css';
+@import '@omni/tokens/fonts.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

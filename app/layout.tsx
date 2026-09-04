@@ -1,12 +1,10 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, JetBrains_Mono } from 'next/font/google'
+import type { ReactNode } from 'react'
+import { accentTokensToCssVars, PRODUCTS } from '@omni/tokens'
 import './globals.css'
 import { CookieConsent } from '@/components/CookieConsent'
 import { SuppressRealtimeErrors } from '@/components/SuppressRealtimeErrors'
 import { RegisterSW } from '@/components/RegisterSW'
-
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' })
-const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono', display: 'swap' })
 
 export const metadata: Metadata = {
   title: 'OMNI Queue',
@@ -17,7 +15,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#2563EB',
+  themeColor: PRODUCTS.queue, // was '#2563EB' — a blue, mismatched to Queue's olive accent
   width: 'device-width',
   initialScale: 1,
 }
@@ -32,9 +30,12 @@ export const viewport: Viewport = {
 // to lose (nothing here is public marketing content that benefits from ISR/CDN caching).
 export const dynamic = 'force-dynamic'
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${mono.variable}`}>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <style dangerouslySetInnerHTML={{ __html: accentTokensToCssVars(PRODUCTS.queue) }} />
+      </head>
       <body>{children}<CookieConsent /><SuppressRealtimeErrors /><RegisterSW /></body>
     </html>
   )

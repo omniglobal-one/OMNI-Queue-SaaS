@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  presets: [require('@omni/tokens/tailwind-preset')],
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -8,11 +9,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // "success" dropped here — the preset now owns that key as a nested
+        // {DEFAULT, soft} semantic token; a plain string would have clobbered it.
         primary: '#4D7C0F',
         'primary-hover': '#3F6212',
         secondary: '#F59E0B',
         danger: '#DC2626',
-        success: '#059669',
         bg: {
           base: '#FAFAFA',
           card: '#FFFFFF',
@@ -24,15 +26,7 @@ module.exports = {
           tertiary: '#71717A',
         },
       },
-      fontFamily: {
-        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
-        mono: ['var(--font-mono)', 'monospace'],
-      },
-      borderRadius: {
-        DEFAULT: '8px',
-        lg: '8px',
-        xl: '8px',
-      },
+      // fontFamily and borderRadius dropped — the preset owns both scales now.
       borderColor: {
         DEFAULT: '#E4E4E7',
       },
