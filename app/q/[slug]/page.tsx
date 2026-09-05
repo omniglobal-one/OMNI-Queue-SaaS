@@ -69,15 +69,15 @@ export default async function JoinQueuePage({ params }: { params: Promise<{ slug
   }
 
   const joinForm = (
-    <div className="min-h-screen bg-omni-bg flex flex-col items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-6">
-          <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center mx-auto mb-3">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,_rgb(var(--omni-accent)/0.12),_transparent_70%)] bg-omni-bg px-4">
+      <div className="w-full max-w-sm animate-omni-fade-up">
+        <div className="mb-6 text-center">
+          <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-[18px] border-2 border-accent/25 bg-accent/10 shadow-[0_12px_30px_-12px_rgb(var(--omni-accent)/0.5)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icon.png" alt="" className="w-7 h-7 rounded-lg" />
+            <img src="/icon.png" alt="" className="h-9 w-9 rounded-lg" />
           </div>
-          <h1 className="text-xl font-semibold text-omni-ink">{queue.name}</h1>
-          <p className="text-omni-ink-faint text-sm mt-1">{businessName} · {PLATFORM.name}</p>
+          <h1 className="font-display text-h1 font-semibold text-omni-ink">{queue.name}</h1>
+          <p className="mt-1 text-small text-omni-ink-faint">{businessName} · {PLATFORM.name}</p>
         </div>
         <JoinQueueForm queue={queue} businessName={businessName} />
       </div>
