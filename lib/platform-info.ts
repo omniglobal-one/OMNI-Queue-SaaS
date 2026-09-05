@@ -1,4 +1,4 @@
 export const PLATFORM = {
   name: 'OMNI Queue',
-  tagline: 'Digital Queue Management',
+  tagline: 'Digital Queue Platform',
 }
