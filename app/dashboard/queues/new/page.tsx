@@ -2,10 +2,15 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
 import { createQueue } from '@/app/actions/queues'
 import { Topbar } from '@/components/layout/Topbar'
-import { Input, Textarea, Select } from '@/components/ui/Input'
-import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
 export default function NewQueuePage() {
   const router = useRouter()
@@ -52,108 +57,127 @@ export default function NewQueuePage() {
     <>
       <Topbar title="New Queue" subtitle="Set up a digital queue for your customers" />
       <div className="p-4 sm:p-6 lg:p-8">
-        <div className="max-w-3xl mx-auto">
+        <div className="mx-auto max-w-3xl">
           <form onSubmit={handleSubmit}>
-            <div className="card p-6 space-y-4">
-              <h2 className="section-header">Queue Details</h2>
+            <Card>
+              <CardContent className="space-y-4 p-6">
+                <h2 className="text-lg font-semibold">Queue Details</h2>
 
-              <Input
-                id="name"
-                label="Queue Name"
-                value={name}
-                onChange={e => handleNameChange(e.target.value)}
-                placeholder="e.g. Cashier Queue A"
-                required
-              />
-
-              <Textarea
-                id="description"
-                label="Description"
-                rows={2}
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                placeholder="Optional — visible to customers joining this queue"
-              />
-
-              <div className="space-y-1">
-                <label htmlFor="slug" className="label">URL Slug</label>
-                <div className="flex">
-                  <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-bg-border bg-bg-base text-text-tertiary text-sm select-none">
-                    /q/
-                  </span>
-                  <input
-                    id="slug"
-                    className="input rounded-l-none flex-1"
-                    value={slug}
-                    onChange={e => setSlug(autoSlug(e.target.value))}
-                    placeholder="cashier-a"
+                <div className="space-y-2">
+                  <Label htmlFor="name">Queue Name</Label>
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={e => handleNameChange(e.target.value)}
+                    placeholder="e.g. Cashier Queue A"
                     required
                   />
                 </div>
-                <p className="text-text-tertiary text-xs">
-                  Customers join at: <span className="font-mono">queue.omnidesk.one/q/{slug || 'your-slug'}</span>
-                </p>
-              </div>
-            </div>
 
-            <div className="card p-6 space-y-4 mt-4">
-              <h2 className="section-header">Configuration</h2>
-
-              <div className="space-y-1">
-                <label className="label">Ticket Mode</label>
-                <div className="grid grid-cols-2 gap-3">
-                  {(['auto', 'invoice'] as const).map(m => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => setMode(m)}
-                      className={`border rounded-lg py-3 px-4 text-left transition-colors ${
-                        mode === m
-                          ? 'border-primary bg-primary/5 text-primary'
-                          : 'border-bg-border text-text-secondary hover:border-primary/40'
-                      }`}
-                    >
-                      <div className="text-sm font-medium">{m === 'auto' ? 'Auto Number' : 'Invoice Number'}</div>
-                      <div className="text-xs mt-0.5 opacity-70">
-                        {m === 'auto' ? 'System assigns A001, A002…' : 'Customer enters their own reference'}
-                      </div>
-                    </button>
-                  ))}
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    rows={2}
+                    value={description}
+                    onChange={e => setDescription(e.target.value)}
+                    placeholder="Optional — visible to customers joining this queue"
+                  />
                 </div>
-              </div>
 
-              <Input
-                id="avgService"
-                label="Average Service Time (minutes)"
-                type="number"
-                min={1}
-                value={avgService}
-                onChange={e => setAvgService(e.target.value)}
-                className="w-28"
-              />
+                <div className="space-y-2">
+                  <Label htmlFor="slug">URL Slug</Label>
+                  <div className="flex">
+                    <span className="inline-flex select-none items-center rounded-l-md border border-r-0 border-input bg-muted px-3 text-sm text-muted-foreground">
+                      /q/
+                    </span>
+                    <Input
+                      id="slug"
+                      className="rounded-l-none"
+                      value={slug}
+                      onChange={e => setSlug(autoSlug(e.target.value))}
+                      placeholder="cashier-a"
+                      required
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Customers join at: <span className="font-mono">queue.omnidesk.one/q/{slug || 'your-slug'}</span>
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
 
-              <Input
-                id="maxTickets"
-                label="Max Tickets per Session"
-                type="number"
-                min={1}
-                value={maxTickets}
-                onChange={e => setMaxTickets(e.target.value)}
-                placeholder="Unlimited"
-                className="w-28"
-                hint="Leave blank for unlimited"
-              />
-            </div>
+            <Card className="mt-4">
+              <CardContent className="space-y-4 p-6">
+                <h2 className="text-lg font-semibold">Configuration</h2>
+
+                <div className="space-y-2">
+                  <Label>Ticket Mode</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {(['auto', 'invoice'] as const).map(m => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setMode(m)}
+                        className={cn(
+                          'rounded-lg border px-4 py-3 text-left transition-colors',
+                          mode === m
+                            ? 'border-primary bg-primary/5 text-primary'
+                            : 'border-input text-muted-foreground hover:border-primary/40'
+                        )}
+                      >
+                        <div className="text-sm font-medium">{m === 'auto' ? 'Auto Number' : 'Invoice Number'}</div>
+                        <div className="mt-0.5 text-xs opacity-70">
+                          {m === 'auto' ? 'System assigns A001, A002…' : 'Customer enters their own reference'}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="avgService">Average Service Time (minutes)</Label>
+                  <Input
+                    id="avgService"
+                    type="number"
+                    min={1}
+                    value={avgService}
+                    onChange={e => setAvgService(e.target.value)}
+                    className="w-28"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="maxTickets">Max Tickets per Session</Label>
+                  <Input
+                    id="maxTickets"
+                    type="number"
+                    min={1}
+                    value={maxTickets}
+                    onChange={e => setMaxTickets(e.target.value)}
+                    placeholder="Unlimited"
+                    className="w-28"
+                  />
+                  <p className="text-xs text-muted-foreground">Leave blank for unlimited</p>
+                </div>
+              </CardContent>
+            </Card>
 
             {error && (
-              <div className="mt-4 bg-danger/10 border border-danger/30 rounded-lg p-3 text-danger text-sm">
+              <p className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
                 {error}
-              </div>
+              </p>
             )}
 
             <div className="mt-4">
-              <Button type="submit" loading={isPending} className="w-full">
-                Create Queue
+              <Button type="submit" disabled={isPending} className="w-full">
+                {isPending ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" /> Creating…
+                  </>
+                ) : (
+                  'Create Queue'
+                )}
               </Button>
             </div>
           </form>

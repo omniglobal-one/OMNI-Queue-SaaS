@@ -1,10 +1,19 @@
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
-import { accentTokensToCssVars, PRODUCTS } from '@omni/tokens'
+import { Geist, Geist_Mono } from 'next/font/google'
+import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 import { CookieConsent } from '@/components/CookieConsent'
 import { SuppressRealtimeErrors } from '@/components/SuppressRealtimeErrors'
 import { RegisterSW } from '@/components/RegisterSW'
+
+const geistSans = Geist({ subsets: ['latin'], variable: '--font-sans' })
+const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-mono' })
+
+// Queue's brand accent, #4D7C0F — matches --primary in globals.css. Kept here as a plain
+// constant now that @omni/tokens is gone; this app no longer shares a runtime accent
+// registry with the rest of the suite, just the same shadcn/ui system.
+const ACCENT_HEX = '#4D7C0F'
 
 export const metadata: Metadata = {
   title: 'OMNI Queue',
@@ -15,7 +24,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: PRODUCTS.queue, // was '#2563EB' — a blue, mismatched to Queue's olive accent
+  themeColor: ACCENT_HEX,
   width: 'device-width',
   initialScale: 1,
 }
@@ -32,11 +41,14 @@ export const dynamic = 'force-dynamic'
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <style dangerouslySetInnerHTML={{ __html: accentTokensToCssVars(PRODUCTS.queue) }} />
-      </head>
-      <body>{children}<CookieConsent /><SuppressRealtimeErrors /><RegisterSW /></body>
+    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className="font-sans antialiased">
+        {children}
+        <CookieConsent />
+        <SuppressRealtimeErrors />
+        <RegisterSW />
+        <Toaster position="top-right" richColors />
+      </body>
     </html>
   )
 }

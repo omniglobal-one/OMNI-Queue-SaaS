@@ -3,12 +3,17 @@
 import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { use } from 'react'
+import { Loader2, X } from 'lucide-react'
 import { updateQueueSettings, deleteQueue, getOwnQueue } from '@/app/actions/queues'
 import { Topbar } from '@/components/layout/Topbar'
-import { Input } from '@/components/ui/Input'
-import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
-import { Modal } from '@/components/ui/Modal'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import type { Queue } from '@/types'
 
 export default function QueueSettingsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -48,9 +53,11 @@ export default function QueueSettingsPage({ params }: { params: Promise<{ id: st
       <>
         <Topbar title="Queue Settings" />
         <div className="p-4 sm:p-6 lg:p-8">
-          <div className="card p-6 max-w-3xl mx-auto text-center text-text-secondary">
-            This queue doesn&apos;t exist or you don&apos;t have access to it.
-          </div>
+          <Card className="mx-auto max-w-3xl">
+            <CardContent className="p-6 text-center text-muted-foreground">
+              This queue doesn&apos;t exist or you don&apos;t have access to it.
+            </CardContent>
+          </Card>
         </div>
       </>
     )
@@ -88,7 +95,7 @@ export default function QueueSettingsPage({ params }: { params: Promise<{ id: st
       <>
         <Topbar title="Queue Settings" />
         <div className="p-4 sm:p-6 lg:p-8">
-          <div className="skeleton h-64 rounded-lg max-w-3xl mx-auto" />
+          <Skeleton className="mx-auto h-64 max-w-3xl rounded-lg" />
         </div>
       </>
     )
@@ -102,136 +109,153 @@ export default function QueueSettingsPage({ params }: { params: Promise<{ id: st
         actions={
           <div className="flex items-center gap-3">
             {saved && <Badge variant="success">Saved</Badge>}
-            <Button loading={isPending} onClick={handleSave}>Save Changes</Button>
+            <Button disabled={isPending} onClick={handleSave}>
+              {isPending && <Loader2 className="size-4 animate-spin" />} Save Changes
+            </Button>
           </div>
         }
       />
       <div className="p-4 sm:p-6 lg:p-8">
-        <div className="max-w-3xl mx-auto space-y-6">
+        <div className="mx-auto max-w-3xl space-y-6">
 
-          <div className="card p-6 space-y-4">
-            <h2 className="section-header">Queue Info</h2>
-            <div className="space-y-3 divide-y divide-bg-border">
-              <div className="flex items-center justify-between py-2 first:pt-0 gap-4">
-                <span className="text-text-secondary text-sm shrink-0">Name</span>
-                <input
-                  className="input text-sm text-right max-w-[200px]"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  placeholder="Queue name"
+          <Card>
+            <CardContent className="space-y-4 p-6">
+              <h2 className="text-lg font-semibold">Queue Info</h2>
+              <div className="divide-y divide-border">
+                <div className="flex items-center justify-between gap-4 py-2 first:pt-0">
+                  <span className="shrink-0 text-sm text-muted-foreground">Name</span>
+                  <Input
+                    className="max-w-[200px] text-right"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    placeholder="Queue name"
+                  />
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-sm text-muted-foreground">Mode</span>
+                  <Badge variant="secondary">{queue.mode === 'auto' ? 'Auto Number' : 'Invoice Number'}</Badge>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-sm text-muted-foreground">Join URL</span>
+                  <span className="font-mono text-xs text-muted-foreground">/q/{queue.slug}</span>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-sm text-muted-foreground">Status</span>
+                  <Badge variant={queue.status === 'open' ? 'success' : queue.status === 'paused' ? 'warning' : 'secondary'}>
+                    {queue.status.charAt(0).toUpperCase() + queue.status.slice(1)}
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="space-y-4 p-6">
+              <h2 className="text-lg font-semibold">Settings</h2>
+
+              <div className="space-y-2">
+                <Label htmlFor="avgService">Average Service Time (minutes)</Label>
+                <Input
+                  id="avgService"
+                  type="number"
+                  min={1}
+                  value={avgService}
+                  onChange={e => setAvgService(e.target.value)}
+                  className="w-28"
                 />
               </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-text-secondary text-sm">Mode</span>
-                <Badge variant="neutral">{queue.mode === 'auto' ? 'Auto Number' : 'Invoice Number'}</Badge>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-text-secondary text-sm">Join URL</span>
-                <span className="text-text-tertiary text-xs font-mono">/q/{queue.slug}</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-text-secondary text-sm">Status</span>
-                <Badge variant={queue.status === 'open' ? 'success' : queue.status === 'paused' ? 'warning' : 'neutral'}>
-                  {queue.status.charAt(0).toUpperCase() + queue.status.slice(1)}
-                </Badge>
-              </div>
-            </div>
-          </div>
 
-          <div className="card p-6 space-y-4">
-            <h2 className="section-header">Settings</h2>
-
-            <Input
-              id="avgService"
-              label="Average Service Time (minutes)"
-              type="number"
-              min={1}
-              value={avgService}
-              onChange={e => setAvgService(e.target.value)}
-              className="w-28"
-            />
-
-            <Input
-              id="maxTickets"
-              label="Max Tickets per Session"
-              type="number"
-              min={1}
-              value={maxTickets}
-              onChange={e => setMaxTickets(e.target.value)}
-              placeholder="Unlimited"
-              className="w-28"
-              hint="Leave blank for unlimited"
-            />
-
-            <div className="flex items-center gap-3 pt-1">
-              <input
-                type="checkbox"
-                id="accepting"
-                checked={isAccepting}
-                onChange={e => setIsAccepting(e.target.checked)}
-                className="w-4 h-4 accent-primary"
-              />
-              <label htmlFor="accepting" className="text-sm text-text-secondary select-none">
-                Accepting new tickets
-              </label>
-            </div>
-
-            <div className="space-y-1.5 pt-2 border-t border-bg-border">
-              <label className="label">Queue Passcode</label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={4}
-                  value={passcode}
-                  onChange={e => setPasscode(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                  placeholder="e.g. 1234"
-                  className="input w-28 font-mono tracking-widest text-center text-lg"
+              <div className="space-y-2">
+                <Label htmlFor="maxTickets">Max Tickets per Session</Label>
+                <Input
+                  id="maxTickets"
+                  type="number"
+                  min={1}
+                  value={maxTickets}
+                  onChange={e => setMaxTickets(e.target.value)}
+                  placeholder="Unlimited"
+                  className="w-28"
                 />
-                {passcode && (
-                  <button
-                    type="button"
-                    onClick={() => setPasscode('')}
-                    className="text-xs text-text-tertiary hover:text-danger transition-colors"
-                  >
-                    Clear
-                  </button>
-                )}
+                <p className="text-xs text-muted-foreground">Leave blank for unlimited</p>
               </div>
-              <p className="text-xs text-text-tertiary">
-                {passcode.length === 4
-                  ? 'Customers must enter this code before joining the queue.'
-                  : 'Enter a 4-digit code to require customers to verify before joining. Leave blank to disable.'}
+
+              <div className="flex items-center gap-3 pt-1">
+                <Checkbox
+                  id="accepting"
+                  checked={isAccepting}
+                  onCheckedChange={(v) => setIsAccepting(v === true)}
+                />
+                <Label htmlFor="accepting" className="font-normal text-muted-foreground">
+                  Accepting new tickets
+                </Label>
+              </div>
+
+              <div className="space-y-1.5 border-t border-border pt-3">
+                <Label>Queue Passcode</Label>
+                <div className="flex items-center gap-3">
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={passcode}
+                    onChange={e => setPasscode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    placeholder="e.g. 1234"
+                    className="w-28 text-center font-mono text-lg tracking-widest"
+                  />
+                  {passcode && (
+                    <button
+                      type="button"
+                      onClick={() => setPasscode('')}
+                      className="text-xs text-muted-foreground transition-colors hover:text-destructive"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {passcode.length === 4
+                    ? 'Customers must enter this code before joining the queue.'
+                    : 'Enter a 4-digit code to require customers to verify before joining. Leave blank to disable.'}
+                </p>
+              </div>
+
+              {error && (
+                <p className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                  {error}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="mb-1 font-semibold text-destructive">Danger Zone</h2>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Deleting this queue permanently removes all tickets and history.
               </p>
-            </div>
-
-            {error && (
-              <div className="bg-danger/10 border border-danger/30 rounded-lg p-3 text-danger text-sm">
-                {error}
-              </div>
-            )}
-          </div>
-
-          <div className="card p-6">
-            <h2 className="font-semibold text-danger mb-1">Danger Zone</h2>
-            <p className="text-text-tertiary text-sm mb-4">
-              Deleting this queue permanently removes all tickets and history.
-            </p>
-            <Button variant="danger" onClick={() => setDeleteModal(true)}>Delete Queue</Button>
-          </div>
+              <Button variant="destructive" onClick={() => setDeleteModal(true)}>Delete Queue</Button>
+            </CardContent>
+          </Card>
 
         </div>
       </div>
 
-      <Modal open={deleteModal} onClose={() => setDeleteModal(false)} title="Delete Queue">
-        <p className="text-text-secondary mb-6">
-          Are you sure you want to delete <strong>{queue.name}</strong>? This cannot be undone.
-        </p>
-        <div className="flex gap-3">
-          <Button variant="ghost" onClick={() => setDeleteModal(false)} className="flex-1">Cancel</Button>
-          <Button variant="danger" onClick={handleDelete} loading={isPending} className="flex-1">Delete</Button>
-        </div>
-      </Modal>
+      <Dialog open={deleteModal} onOpenChange={setDeleteModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Queue</DialogTitle>
+          </DialogHeader>
+          <p className="text-muted-foreground">
+            Are you sure you want to delete <strong>{queue.name}</strong>? This cannot be undone.
+          </p>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setDeleteModal(false)} className="flex-1">Cancel</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={isPending} className="flex-1">
+              {isPending ? <Loader2 className="size-4 animate-spin" /> : <X className="size-4" />} Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

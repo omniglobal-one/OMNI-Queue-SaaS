@@ -1,16 +1,14 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Badge, Button, EmptyState, StatRow } from '@omni/ui'
+import { Plus, ArrowUpRight } from 'lucide-react'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Topbar } from '@/components/layout/Topbar'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { EmptyState } from '@/components/dashboard/EmptyState'
+import { QueueStatusBadge } from '@/components/dashboard/StatusBadges'
 import type { Profile, Queue, Ticket } from '@/types'
-
-function QueueStatusBadge({ status }: { status: string }) {
-  if (status === 'open') return <Badge tone="success">Open</Badge>
-  if (status === 'paused') return <Badge tone="warning">Paused</Badge>
-  return <Badge tone="info">Closed</Badge>
-}
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient()
@@ -40,6 +38,12 @@ export default async function DashboardPage() {
     ).length
   }
 
+  const stats = [
+    { label: 'Active queues', value: queues.filter(q => q.status === 'open').length },
+    { label: 'Waiting now', value: totalPending },
+    { label: 'Served today', value: totalServedToday },
+  ]
+
   return (
     <>
       <Topbar
@@ -47,50 +51,58 @@ export default async function DashboardPage() {
         {...(profile.business_name ? { subtitle: profile.business_name } : {})}
         actions={
           <Button asChild>
-            <Link href="/dashboard/queues/new">+ New Queue</Link>
+            <Link href="/dashboard/queues/new">
+              <Plus className="size-4" /> New Queue
+            </Link>
           </Button>
         }
       />
       <div className="space-y-6 p-4 sm:p-6 lg:p-8">
-        <StatRow
-          stats={[
-            { label: 'Active queues', value: String(queues.filter(q => q.status === 'open').length) },
-            { label: 'Waiting now', value: String(totalPending) },
-            { label: 'Served today', value: String(totalServedToday) },
-          ]}
-        />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {stats.map((s) => (
+            <Card key={s.label}>
+              <CardContent className="p-5">
+                <p className="text-sm text-muted-foreground">{s.label}</p>
+                <p className="mt-1.5 text-3xl font-semibold tabular-nums tracking-tight">{s.value}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-        <div className="rounded-md border border-omni-border bg-omni-surface">
-          <div className="flex items-center justify-between border-b border-omni-border p-4">
-            <h2 className="font-display text-h2 font-semibold text-omni-ink">Your Queues</h2>
-            <Link href="/dashboard/queues" className="text-small text-accent hover:underline">View all</Link>
-          </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-border/70">
+            <CardTitle className="text-base">Your Queues</CardTitle>
+            <Button asChild variant="ghost" size="sm" className="text-xs">
+              <Link href="/dashboard/queues">
+                View all <ArrowUpRight className="size-3.5" />
+              </Link>
+            </Button>
+          </CardHeader>
           {queues.length === 0 ? (
-            <div className="p-6">
-              <EmptyState
-                title="No queues yet"
-                description="Create your first queue to start managing walk-ins."
-                action={<Button asChild><Link href="/dashboard/queues/new">Create your first queue</Link></Button>}
-              />
-            </div>
+            <EmptyState
+              title="No queues yet"
+              subtitle="Create your first queue to start managing walk-ins."
+              ctaLabel="Create your first queue"
+              ctaHref="/dashboard/queues/new"
+            />
           ) : (
-            <div className="divide-y divide-omni-border">
+            <div className="divide-y divide-border/70">
               {queues.map(q => (
                 <Link
                   key={q.id}
                   href={`/dashboard/queues/${q.id}`}
-                  className="flex items-center gap-4 px-4 py-3 transition-colors hover:bg-omni-surface-sunk"
+                  className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-accent"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-omni-ink">{q.name}</p>
-                    <p className="mt-0.5 font-mono text-caption text-omni-ink-faint">/{q.slug}</p>
+                    <p className="font-medium">{q.name}</p>
+                    <p className="mt-0.5 truncate font-mono text-xs text-muted-foreground">/{q.slug}</p>
                   </div>
                   <QueueStatusBadge status={q.status} />
                 </Link>
               ))}
             </div>
           )}
-        </div>
+        </Card>
       </div>
     </>
   )

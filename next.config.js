@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
-  transpilePackages: ['@omni/ui'],
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '*.supabase.co' },

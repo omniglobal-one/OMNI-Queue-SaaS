@@ -2,9 +2,19 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { QueueStatusBadge } from '@/components/ui/Badge'
-import { Modal } from '@/components/ui/Modal'
-import { Button } from '@/components/ui/Button'
+import { Loader2, Download } from 'lucide-react'
+import { QueueStatusBadge } from '@/components/dashboard/StatusBadges'
+import { StatCard } from '@/components/dashboard/StatCard'
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { SelectNative } from '@/components/ui/select-native'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { toggleMerchantActive, deleteMerchant, adminDeleteQueue, adminCreateQueue } from '@/app/actions/admin'
 import type { Profile, Queue } from '@/types'
 
@@ -96,248 +106,240 @@ export function AdminClient({ profiles, queues, ticketCountMap, merchantQueueCou
   return (
     <>
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: 'Merchants', value: `${stats.activeMerchants} / ${stats.totalMerchants}`, sub: 'active / total' },
-          { label: 'Open Queues', value: stats.openQueues, sub: `${stats.totalQueues} total` },
-          { label: 'Waiting Now', value: stats.totalPending, sub: 'across all queues' },
-          { label: 'Total Served', value: stats.totalServed, sub: 'all time' },
-        ].map(s => (
-          <div key={s.label} className="card p-4">
-            <p className="text-xs text-text-tertiary">{s.label}</p>
-            <p className="text-2xl font-bold text-text-primary mt-1">{s.value}</p>
-            <p className="text-xs text-text-tertiary mt-0.5">{s.sub}</p>
-          </div>
-        ))}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <StatCard label="Merchants" value={`${stats.activeMerchants} / ${stats.totalMerchants}`} sub="active / total" />
+        <StatCard label="Open Queues" value={stats.openQueues} sub={`${stats.totalQueues} total`} />
+        <StatCard label="Waiting Now" value={stats.totalPending} sub="across all queues" />
+        <StatCard label="Total Served" value={stats.totalServed} sub="all time" />
       </div>
 
       {/* Merchants */}
-      <div className="card overflow-hidden">
-        <div className="px-5 py-4 border-b border-bg-border flex items-center justify-between">
-          <div>
-            <h2 className="text-base font-semibold text-text-primary">Merchants</h2>
-            <p className="text-xs text-text-tertiary mt-0.5">{profiles.length} accounts</p>
-          </div>
-        </div>
+      <Card className="overflow-hidden">
+        <CardHeader className="border-b border-border/70">
+          <CardTitle className="text-base">Merchants</CardTitle>
+          <p className="text-xs text-muted-foreground">{profiles.length} accounts</p>
+        </CardHeader>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-bg-border bg-bg-base">
-                <th className="text-left px-5 py-2.5 text-xs font-medium text-text-tertiary">Business</th>
-                <th className="text-left px-5 py-2.5 text-xs font-medium text-text-tertiary">Email</th>
-                <th className="text-left px-5 py-2.5 text-xs font-medium text-text-tertiary">Role</th>
-                <th className="text-center px-5 py-2.5 text-xs font-medium text-text-tertiary">Queues</th>
-                <th className="text-center px-5 py-2.5 text-xs font-medium text-text-tertiary">Status</th>
-                <th className="text-right px-5 py-2.5 text-xs font-medium text-text-tertiary">Joined</th>
-                <th className="text-right px-5 py-2.5 text-xs font-medium text-text-tertiary">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-bg-border/60">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Business</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead className="text-center">Queues</TableHead>
+                <TableHead className="text-center">Status</TableHead>
+                <TableHead className="text-right">Joined</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {profiles.map(p => (
-                <tr key={p.id} className="hover:bg-bg-base/50 transition-colors">
-                  <td className="px-5 py-3">
-                    <p className="font-medium text-text-primary">{p.business_name ?? <span className="text-text-tertiary italic">No name</span>}</p>
-                    {p.business_slug && <p className="text-xs text-text-tertiary font-mono">/{p.business_slug}</p>}
-                  </td>
-                  <td className="px-5 py-3">
-                    <p className="text-text-secondary text-xs font-mono">{emailMap[p.id] ?? '—'}</p>
-                  </td>
-                  <td className="px-5 py-3">
-                    <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${p.role === 'admin' ? 'bg-primary/10 text-primary' : 'bg-bg-border text-text-secondary'}`}>
-                      {p.role}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3 text-center">
-                    <span className="text-sm font-semibold text-text-primary">{merchantQueueCount[p.id] ?? 0}</span>
-                  </td>
-                  <td className="px-5 py-3 text-center">
-                    <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${p.is_active ? 'bg-success/10 text-success' : 'bg-bg-border text-text-tertiary'}`}>
-                      {p.is_active ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3 text-right">
-                    <span className="text-xs text-text-tertiary">
+                <TableRow key={p.id}>
+                  <TableCell>
+                    <p className="font-medium">{p.business_name ?? <span className="italic text-muted-foreground">No name</span>}</p>
+                    {p.business_slug && <p className="font-mono text-xs text-muted-foreground">/{p.business_slug}</p>}
+                  </TableCell>
+                  <TableCell>
+                    <p className="font-mono text-xs text-muted-foreground">{emailMap[p.id] ?? '—'}</p>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={p.role === 'admin' ? 'default' : 'secondary'}>{p.role}</Badge>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <span className="text-sm font-semibold">{merchantQueueCount[p.id] ?? 0}</span>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Badge variant={p.is_active ? 'success' : 'secondary'}>{p.is_active ? 'Active' : 'Inactive'}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="text-xs text-muted-foreground">
                       {new Date(p.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </span>
-                  </td>
-                  <td className="px-5 py-3">
+                  </TableCell>
+                  <TableCell>
                     <div className="flex items-center justify-end gap-2">
                       {p.role !== 'admin' && (
                         <>
                           <button
                             onClick={() => setCreateModal({ merchantId: p.id, merchantName: p.business_name ?? 'this merchant' })}
                             disabled={isPending}
-                            className="px-2.5 py-1 rounded text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors disabled:opacity-50"
+                            className="rounded px-2.5 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/10 disabled:opacity-50"
                           >
                             + Queue
                           </button>
                           <button
                             onClick={() => handleToggle(p.id, p.is_active)}
                             disabled={isPending}
-                            className={`px-2.5 py-1 rounded text-xs font-medium transition-colors disabled:opacity-50 ${p.is_active ? 'text-yellow-700 bg-yellow-100 hover:bg-yellow-200' : 'text-success bg-success/10 hover:bg-success/20'}`}
+                            className="rounded px-2.5 py-1 text-xs font-medium text-warning transition-colors hover:bg-warning/10 disabled:opacity-50 data-[active=false]:text-success data-[active=false]:hover:bg-success/10"
+                            data-active={p.is_active}
                           >
                             {p.is_active ? 'Disable' : 'Enable'}
                           </button>
                           <button
                             onClick={() => setDeleteModal({ type: 'merchant', id: p.id, name: p.business_name ?? 'this merchant' })}
                             disabled={isPending}
-                            className="px-2.5 py-1 rounded text-xs font-medium text-danger bg-danger/10 hover:bg-danger/20 transition-colors disabled:opacity-50"
+                            className="rounded px-2.5 py-1 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
                           >
                             Remove
                           </button>
                         </>
                       )}
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
-      </div>
+      </Card>
 
       {/* Queues */}
-      <div className="card overflow-hidden">
-        <div className="px-5 py-4 border-b border-bg-border">
-          <h2 className="text-base font-semibold text-text-primary">All Queues</h2>
-          <p className="text-xs text-text-tertiary mt-0.5">{queues.length} queues across all merchants</p>
-        </div>
+      <Card className="overflow-hidden">
+        <CardHeader className="border-b border-border/70">
+          <CardTitle className="text-base">All Queues</CardTitle>
+          <p className="text-xs text-muted-foreground">{queues.length} queues across all merchants</p>
+        </CardHeader>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-bg-border bg-bg-base">
-                <th className="text-left px-5 py-2.5 text-xs font-medium text-text-tertiary">Queue</th>
-                <th className="text-left px-5 py-2.5 text-xs font-medium text-text-tertiary">Merchant</th>
-                <th className="text-center px-5 py-2.5 text-xs font-medium text-text-tertiary">Mode</th>
-                <th className="text-center px-5 py-2.5 text-xs font-medium text-text-tertiary">Status</th>
-                <th className="text-center px-5 py-2.5 text-xs font-medium text-text-tertiary">Waiting</th>
-                <th className="text-center px-5 py-2.5 text-xs font-medium text-text-tertiary">Served</th>
-                <th className="text-right px-5 py-2.5 text-xs font-medium text-text-tertiary">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-bg-border/60">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Queue</TableHead>
+                <TableHead>Merchant</TableHead>
+                <TableHead className="text-center">Mode</TableHead>
+                <TableHead className="text-center">Status</TableHead>
+                <TableHead className="text-center">Waiting</TableHead>
+                <TableHead className="text-center">Served</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {queues.map(q => {
                 const counts = ticketCountMap[q.id]
                 const merchant = profiles.find(p => p.id === q.merchant_id)
                 return (
-                  <tr key={q.id} className="hover:bg-bg-base/50 transition-colors">
-                    <td className="px-5 py-3">
-                      <p className="font-medium text-text-primary">{q.name}</p>
-                      <p className="text-xs text-text-tertiary font-mono">/q/{q.slug}</p>
-                    </td>
-                    <td className="px-5 py-3">
-                      <p className="text-sm text-text-secondary">{merchant?.business_name ?? '—'}</p>
-                    </td>
-                    <td className="px-5 py-3 text-center">
-                      <span className="text-xs font-mono text-text-tertiary">{q.mode}</span>
-                    </td>
-                    <td className="px-5 py-3 text-center">
+                  <TableRow key={q.id}>
+                    <TableCell>
+                      <p className="font-medium">{q.name}</p>
+                      <p className="font-mono text-xs text-muted-foreground">/q/{q.slug}</p>
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-sm text-muted-foreground">{merchant?.business_name ?? '—'}</p>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <span className="font-mono text-xs text-muted-foreground">{q.mode}</span>
+                    </TableCell>
+                    <TableCell className="text-center">
                       <QueueStatusBadge status={q.status} />
-                    </td>
-                    <td className="px-5 py-3 text-center">
-                      <span className={`text-sm font-bold ${(counts?.pending ?? 0) > 0 ? 'text-primary' : 'text-text-tertiary'}`}>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <span className={(counts?.pending ?? 0) > 0 ? 'text-sm font-bold text-primary' : 'text-sm font-bold text-muted-foreground'}>
                         {counts?.pending ?? 0}
                       </span>
-                    </td>
-                    <td className="px-5 py-3 text-center">
-                      <span className="text-sm text-success font-medium">{counts?.completed ?? 0}</span>
-                    </td>
-                    <td className="px-5 py-3">
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <span className="text-sm font-medium text-success">{counts?.completed ?? 0}</span>
+                    </TableCell>
+                    <TableCell>
                       <div className="flex items-center justify-end gap-2">
                         <a
                           href={`/api/qr-card?id=${q.id}`}
                           download={`${q.slug}-queue-card.png`}
-                          className="px-2.5 py-1 rounded text-xs font-medium text-text-secondary bg-bg-border hover:bg-bg-border/80 transition-colors"
+                          className="flex items-center gap-1 rounded bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/80"
                           title="Download QR card"
                         >
-                          QR
+                          <Download className="size-3" /> QR
                         </a>
                         <button
                           onClick={() => setDeleteModal({ type: 'queue', id: q.id, name: q.name })}
                           disabled={isPending}
-                          className="px-2.5 py-1 rounded text-xs font-medium text-danger bg-danger/10 hover:bg-danger/20 transition-colors disabled:opacity-50"
+                          className="rounded bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20 disabled:opacity-50"
                         >
                           Delete
                         </button>
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )
               })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
-      </div>
+      </Card>
 
       {/* Delete confirmation modal */}
-      <Modal open={!!deleteModal} onClose={() => setDeleteModal(null)} title={`Remove ${deleteModal?.type === 'merchant' ? 'Merchant' : 'Queue'}`}>
-        <p className="text-text-secondary mb-6">
-          Are you sure you want to remove <strong>{deleteModal?.name}</strong>?
-          {deleteModal?.type === 'merchant' ? ' This will delete their account and all associated queues and tickets.' : ' This will delete all tickets in this queue.'}
-          {' '}This cannot be undone.
-        </p>
-        <div className="flex gap-3">
-          <Button variant="ghost" onClick={() => setDeleteModal(null)} className="flex-1">Cancel</Button>
-          <Button variant="danger" onClick={handleDelete} loading={isPending} className="flex-1">Remove</Button>
-        </div>
-      </Modal>
+      <Dialog open={!!deleteModal} onOpenChange={(open) => !open && setDeleteModal(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove {deleteModal?.type === 'merchant' ? 'Merchant' : 'Queue'}</DialogTitle>
+          </DialogHeader>
+          <p className="text-muted-foreground">
+            Are you sure you want to remove <strong>{deleteModal?.name}</strong>?
+            {deleteModal?.type === 'merchant' ? ' This will delete their account and all associated queues and tickets.' : ' This will delete all tickets in this queue.'}
+            {' '}This cannot be undone.
+          </p>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setDeleteModal(null)} className="flex-1">Cancel</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={isPending} className="flex-1">
+              {isPending && <Loader2 className="size-4 animate-spin" />} Remove
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Create queue modal */}
-      <Modal open={!!createModal} onClose={() => { setCreateModal(null); setCreateError(null) }} title={`Create Queue for ${createModal?.merchantName}`}>
-        <div className="space-y-4">
-          <div>
-            <label className="label">Queue Name</label>
-            <input
-              className="input"
-              value={createForm.name}
-              onChange={e => handleCreateNameChange(e.target.value)}
-              placeholder="e.g. Main Counter"
-            />
-          </div>
-          <div>
-            <label className="label">URL Slug</label>
-            <div className="flex">
-              <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-bg-border bg-bg-base text-text-tertiary text-sm select-none">/q/</span>
-              <input
-                className="input rounded-l-none flex-1"
-                value={createForm.slug}
-                onChange={e => setCreateForm(f => ({ ...f, slug: autoSlug(e.target.value) }))}
-                placeholder="main-counter"
+      <Dialog open={!!createModal} onOpenChange={(open) => { if (!open) { setCreateModal(null); setCreateError(null) } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Queue for {createModal?.merchantName}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Queue Name</Label>
+              <Input value={createForm.name} onChange={e => handleCreateNameChange(e.target.value)} placeholder="e.g. Main Counter" />
+            </div>
+            <div className="space-y-2">
+              <Label>URL Slug</Label>
+              <div className="flex">
+                <span className="inline-flex select-none items-center rounded-l-md border border-r-0 border-input bg-muted px-3 text-sm text-muted-foreground">/q/</span>
+                <Input
+                  className="rounded-l-none"
+                  value={createForm.slug}
+                  onChange={e => setCreateForm(f => ({ ...f, slug: autoSlug(e.target.value) }))}
+                  placeholder="main-counter"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="createMode">Ticket Mode</Label>
+              <SelectNative
+                id="createMode"
+                value={createForm.mode}
+                onChange={e => setCreateForm(f => ({ ...f, mode: e.target.value as 'auto' | 'invoice' }))}
+              >
+                <option value="auto">Auto Number</option>
+                <option value="invoice">Invoice Number</option>
+              </SelectNative>
+            </div>
+            <div className="space-y-2">
+              <Label>Avg Service Time (minutes)</Label>
+              <Input
+                type="number"
+                min={1}
+                value={createForm.avg_service_minutes}
+                onChange={e => setCreateForm(f => ({ ...f, avg_service_minutes: e.target.value }))}
+                className="w-24"
               />
             </div>
-          </div>
-          <div>
-            <label className="label">Ticket Mode</label>
-            <div className="grid grid-cols-2 gap-2">
-              {(['auto', 'invoice'] as const).map(m => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setCreateForm(f => ({ ...f, mode: m }))}
-                  className={`border rounded-lg py-2.5 px-3 text-left transition-colors ${createForm.mode === m ? 'border-primary bg-primary/5 text-primary' : 'border-bg-border text-text-secondary hover:border-primary/40'}`}
-                >
-                  <div className="text-sm font-medium">{m === 'auto' ? 'Auto Number' : 'Invoice Number'}</div>
-                </button>
-              ))}
+            {createError && <p className="text-sm text-destructive">{createError}</p>}
+            <div className="flex gap-3 pt-2">
+              <Button variant="outline" onClick={() => { setCreateModal(null); setCreateError(null) }} className="flex-1">Cancel</Button>
+              <Button onClick={handleCreate} disabled={isPending || !createForm.name || !createForm.slug} className="flex-1">
+                {isPending && <Loader2 className="size-4 animate-spin" />} Create Queue
+              </Button>
             </div>
           </div>
-          <div>
-            <label className="label">Avg Service Time (minutes)</label>
-            <input
-              className="input w-24"
-              type="number"
-              min={1}
-              value={createForm.avg_service_minutes}
-              onChange={e => setCreateForm(f => ({ ...f, avg_service_minutes: e.target.value }))}
-            />
-          </div>
-          {createError && <p className="text-danger text-sm">{createError}</p>}
-          <div className="flex gap-3 pt-2">
-            <Button variant="ghost" onClick={() => { setCreateModal(null); setCreateError(null) }} className="flex-1">Cancel</Button>
-            <Button onClick={handleCreate} loading={isPending} disabled={!createForm.name || !createForm.slug} className="flex-1">Create Queue</Button>
-          </div>
-        </div>
-      </Modal>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

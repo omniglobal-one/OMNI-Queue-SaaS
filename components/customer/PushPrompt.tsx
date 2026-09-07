@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/Button'
+import { Bell, X, Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { subscribeToPush, unsubscribeFromPush } from '@/app/actions/push'
 
 export function PushPrompt({ ticketId, queueId, alreadySubscribed }: {
@@ -69,7 +71,6 @@ export function PushPrompt({ ticketId, queueId, alreadySubscribed }: {
     setLoading(true)
     setError(null)
     try {
-      // Unsubscribe the browser push subscription
       const reg = await navigator.serviceWorker.getRegistration('/sw.js')
       if (reg) {
         const sub = await reg.pushManager.getSubscription()
@@ -86,48 +87,40 @@ export function PushPrompt({ ticketId, queueId, alreadySubscribed }: {
 
   if (subscribed) {
     return (
-      <div className="card p-4 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-success/15 flex items-center justify-center shrink-0">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-success">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-          </svg>
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-text-primary">Notifications enabled</p>
-          <p className="text-xs text-text-tertiary mt-1.5">We&apos;ll alert you when it&apos;s your turn, even if this tab is closed.</p>
-        </div>
-        <button
-          onClick={handleDisable}
-          disabled={loading}
-          className="shrink-0 flex items-center gap-1.5 text-xs font-medium text-text-tertiary hover:text-danger transition-colors px-2.5 py-1.5 rounded-lg hover:bg-danger/8 disabled:opacity-50"
-        >
-          {loading ? (
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="animate-spin">
-              <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
-              <path d="M12 2a10 10 0 0 1 10 10" />
-            </svg>
-          ) : (
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M18 6 6 18M6 6l12 12" />
-            </svg>
-          )}
-          Disable
-        </button>
-        {error && <p className="text-danger text-xs mt-2">{error}</p>}
-      </div>
+      <Card>
+        <CardContent className="flex items-center gap-3 p-4">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-success/15">
+            <Bell className="size-4 text-success" strokeWidth={2.5} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium">Notifications enabled</p>
+            <p className="mt-1.5 text-xs text-muted-foreground">We&apos;ll alert you when it&apos;s your turn, even if this tab is closed.</p>
+          </div>
+          <button
+            onClick={handleDisable}
+            disabled={loading}
+            className="flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="size-3 animate-spin" /> : <X className="size-3" />}
+            Disable
+          </button>
+          {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
+        </CardContent>
+      </Card>
     )
   }
 
   return (
-    <div className="card p-4">
-      <p className="text-sm font-medium text-text-primary mb-1">Get notified when it&apos;s your turn</p>
-      <p className="text-xs text-text-tertiary mb-3">Enable push notifications so you don&apos;t miss your turn — even with this tab closed.</p>
-      <Button variant="primary" onClick={handleEnable} loading={loading} className="w-full">
-        Enable Notifications
-      </Button>
-      {error && <p className="text-danger text-xs mt-2">{error}</p>}
-    </div>
+    <Card>
+      <CardContent className="p-4">
+        <p className="mb-1 text-sm font-medium">Get notified when it&apos;s your turn</p>
+        <p className="mb-3 text-xs text-muted-foreground">Enable push notifications so you don&apos;t miss your turn — even with this tab closed.</p>
+        <Button onClick={handleEnable} disabled={loading} className="w-full">
+          {loading && <Loader2 className="size-4 animate-spin" />} Enable Notifications
+        </Button>
+        {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
+      </CardContent>
+    </Card>
   )
 }
 

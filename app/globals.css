@@ -1,21 +1,73 @@
-@import '@omni/tokens/tokens.css';
-@import '@omni/tokens/fonts.css';
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  * {
-    box-sizing: border-box;
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 86 78% 27%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 142 71% 35%;
+    --success-foreground: 0 0% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 20 14% 10%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 86 78% 27%;
+    --radius: 0.625rem;
   }
 
-  html {
-    color-scheme: light;
+  /* System dark mode only — no manual toggle in this pass. Every token
+     redefined here, never inherited partially, so nothing renders one
+     theme's text on the other theme's surface. */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: 240 10% 4%;
+      --foreground: 0 0% 96%;
+      --card: 240 8% 7%;
+      --card-foreground: 0 0% 96%;
+      --popover: 240 8% 7%;
+      --popover-foreground: 0 0% 96%;
+      --primary: 86 60% 48%;
+      --primary-foreground: 240 10% 4%;
+      --secondary: 240 4% 15%;
+      --secondary-foreground: 0 0% 96%;
+      --muted: 240 4% 15%;
+      --muted-foreground: 240 5% 65%;
+      --accent: 240 4% 16%;
+      --accent-foreground: 0 0% 96%;
+      --destructive: 0 63% 52%;
+      --destructive-foreground: 0 0% 98%;
+      --success: 142 55% 48%;
+      --success-foreground: 0 0% 98%;
+      --warning: 38 80% 58%;
+      --warning-foreground: 20 14% 10%;
+      --border: 240 4% 17%;
+      --input: 240 4% 17%;
+      --ring: 86 60% 48%;
+    }
+  }
+
+  * {
+    @apply border-border;
   }
 
   body {
-    @apply bg-omni-bg text-omni-ink font-sans;
+    @apply bg-background text-foreground;
+    font-feature-settings: 'cv11', 'ss01';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -26,165 +78,14 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-omni-bg;
+    @apply bg-background;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-omni-border rounded-full;
+    @apply bg-border rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-omni-ink-faint;
-  }
-}
-
-@layer components {
-  .card {
-    @apply bg-omni-surface border border-omni-border rounded-lg;
-  }
-
-  .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover
-           text-white text-sm font-medium px-4 py-2 rounded-lg
-           transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-
-  .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 bg-omni-border text-omni-ink
-           text-sm font-medium px-4 py-2 rounded-lg
-           transition-opacity duration-150 hover:opacity-80
-           disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-
-  .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 bg-error hover:bg-error/90
-           text-white text-sm font-medium px-4 py-2 rounded-lg
-           transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-
-  .btn-success {
-    @apply inline-flex items-center justify-center gap-2 bg-success hover:bg-success/90
-           text-white text-sm font-medium px-4 py-2 rounded-lg
-           transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-
-  .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 bg-omni-border text-omni-ink
-           text-sm font-medium px-4 py-2 rounded-lg
-           transition-opacity duration-150 hover:opacity-80
-           disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-
-  .input {
-    @apply bg-omni-surface border border-omni-border text-omni-ink placeholder-omni-ink-faint
-           rounded-lg px-3 py-2 w-full focus:outline-none focus:border-accent
-           transition-colors duration-150;
-  }
-
-  select.input {
-    appearance: none;
-    -webkit-appearance: none;
-    padding-right: 2.5rem;
-    /* omni-drift-ignore — data-URI SVG can't reference a CSS var; hex here
-       must be kept in sync by hand with --omni-ink-faint (mistakes.md R3). */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%238C8890' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 0.75rem center;
-    background-size: 1.125rem 1.125rem;
-    cursor: pointer;
-  }
-
-  select.input:focus {
-    /* omni-drift-ignore — kept in sync by hand with --omni-accent
-       (#4D7C0F, unchanged) per mistakes.md R3; not a CSS-var reference. */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%234D7C0F' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  }
-
-  .label {
-    @apply text-omni-ink-soft text-sm font-medium mb-1 block;
-  }
-
-  .badge {
-    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
-  }
-
-  .badge-pill {
-    @apply badge rounded-full;
-  }
-
-  .badge-success {
-    @apply badge bg-success/20 text-success;
-  }
-
-  .badge-danger {
-    @apply badge bg-error/20 text-error;
-  }
-
-  .badge-secondary {
-    @apply badge bg-secondary/20 text-secondary;
-  }
-
-  .badge-neutral {
-    @apply badge bg-omni-border text-omni-ink-soft;
-  }
-
-  .badge-primary {
-    @apply badge bg-accent/20 text-accent;
-  }
-
-  .badge-live {
-    @apply badge bg-error/20 text-error animate-pulse;
-  }
-
-  .badge-warning {
-    @apply badge bg-warning/20 text-warning;
-  }
-
-  .stat-card {
-    @apply card p-6;
-  }
-
-  .table-base {
-    @apply w-full text-sm;
-  }
-
-  .table-base th {
-    @apply text-omni-ink-faint font-medium text-left py-2.5 px-3 sm:py-3 sm:px-4 border-b border-omni-border whitespace-nowrap;
-  }
-
-  .table-base td {
-    @apply py-2.5 px-3 sm:py-3 sm:px-4 border-b border-omni-border/50 text-omni-ink-soft text-left;
-  }
-
-  .table-base tr:last-child td {
-    @apply border-b-0;
-  }
-
-  .table-base tr:hover td {
-    @apply bg-omni-border/30;
-  }
-
-  .skeleton {
-    @apply bg-omni-border animate-pulse rounded;
-  }
-
-  .section-header {
-    @apply text-lg font-semibold text-omni-ink mb-4;
-  }
-
-  .page-title {
-    @apply text-2xl font-semibold text-omni-ink;
-  }
-
-  .page-header {
-    @apply text-2xl font-semibold text-omni-ink mb-6;
-  }
-
-  .section-title {
-    @apply text-xs font-semibold text-omni-ink-faint uppercase tracking-wider mb-3;
-  }
-
-  .mono {
-    @apply font-mono text-sm text-omni-ink-faint;
+    @apply bg-muted-foreground/40;
   }
 }

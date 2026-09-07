@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 const STORAGE_KEY = 'omni_queue_cookie_consent'
 
@@ -20,21 +21,19 @@ export function CookieConsent() {
   if (!visible) return null
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-bg-card border-t border-bg-border px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center gap-3 shadow-lg">
-      <p className="text-xs text-text-secondary flex-1">
+    <div className="fixed bottom-0 left-0 right-0 z-50 flex flex-col items-start gap-3 border-t border-border bg-card px-4 py-3 shadow-lg sm:flex-row sm:items-center">
+      <p className="flex-1 text-xs text-muted-foreground">
         We use browser-based storage to manage your queue session and remember your preferences.
         By using OMNI Queue you agree to our{' '}
-        <Link href="/privacy" className="underline hover:text-text-primary transition-colors">
+        <Link href="/privacy" className="underline hover:text-foreground transition-colors">
           Privacy Policy &amp; Terms of Use
-        </Link>.
+        </Link>
+        .
       </p>
-      <div className="flex items-center gap-2 shrink-0">
-        <button
-          onClick={acknowledge}
-          className="text-xs font-medium bg-primary text-white px-4 py-1.5 rounded-lg hover:opacity-90 transition-opacity"
-        >
+      <div className="flex shrink-0 items-center gap-2">
+        <Button size="sm" onClick={acknowledge}>
           Got it
-        </button>
+        </Button>
       </div>
     </div>
   )

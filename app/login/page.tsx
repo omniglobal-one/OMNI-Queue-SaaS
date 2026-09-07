@@ -4,7 +4,11 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Button, Input, Alert } from '@omni/ui'
+import Image from 'next/image'
+import { Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { signIn } from '@/app/actions/auth'
 import { PLATFORM } from '@/lib/platform-info'
 
@@ -33,46 +37,47 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-omni-bg p-4">
-      <div className="w-full max-w-md">
-        <div className="mb-6 flex items-center gap-2">
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm bg-accent">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icon.png" alt="" className="h-5 w-5 rounded-sm" />
-          </div>
-          <span className="font-mono text-caption uppercase tracking-wide text-omni-ink-faint">
-            {PLATFORM.name}
-          </span>
-        </div>
-        <h1 className="font-display text-h1-lg font-semibold text-omni-ink">Welcome back</h1>
-        <p className="mt-2 text-body text-omni-ink-soft">Sign in to your account to continue</p>
-
-        <div className="mt-6 rounded-md border border-omni-border bg-omni-surface p-6">
-          <form onSubmit={handleLogin} className="flex flex-col gap-4">
-            <Input
-              label="Email address"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-              autoComplete="email"
-            />
-            <Input
-              label="Password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              autoComplete="current-password"
-            />
-            {error !== null && <Alert tone="error">{error}</Alert>}
-            <Button type="submit" disabled={loading} className="w-full justify-center">
+    <div className="flex min-h-[100dvh] items-center justify-center bg-muted/30 px-4">
+      <div className="w-full max-w-sm">
+        <Link href="/" className="mb-8 flex items-center justify-center gap-2.5">
+          <Image src="/icon.png" alt="" width={28} height={28} className="rounded-md" />
+          <span className="text-[15px] font-semibold tracking-tight">{PLATFORM.name}</span>
+        </Link>
+        <div className="rounded-xl border border-border/80 bg-card p-8 shadow-sm">
+          <h1 className="text-lg font-semibold tracking-tight">Welcome back</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Sign in to your account to continue.</p>
+          <form onSubmit={handleLogin} className="mt-6 space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email address</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                autoComplete="email"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                autoComplete="current-password"
+                required
+              />
+            </div>
+            {error !== null && (
+              <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
+            )}
+            <Button type="submit" className="w-full" disabled={loading}>
               {loading ? (
                 <>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-accent-contrast/30 border-t-accent-contrast" />
-                  Signing in…
+                  <Loader2 className="size-4 animate-spin" /> Signing in…
                 </>
               ) : (
                 'Sign in'
@@ -80,14 +85,13 @@ export default function LoginPage() {
             </Button>
           </form>
         </div>
-
-        <p className="hidden mt-6 text-center text-small text-omni-ink-faint">
-          Don&apos;t have an account?{' '}
-          <Link href="/register" className="font-medium text-omni-ink hover:underline">Create one</Link>
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          {PLATFORM.name} — {PLATFORM.tagline}
         </p>
-        <p className="mt-2 text-center text-small text-omni-ink-faint">{PLATFORM.name} — {PLATFORM.tagline}</p>
-        <p className="mt-2 text-center text-caption text-omni-ink-faint">
-          <Link href="/privacy" className="hover:underline">Privacy Policy &amp; Terms of Use</Link>
+        <p className="mt-2 text-center text-xs text-muted-foreground">
+          <Link href="/privacy" className="hover:underline">
+            Privacy Policy &amp; Terms of Use
+          </Link>
         </p>
       </div>
     </div>
