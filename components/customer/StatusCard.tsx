@@ -1,3 +1,7 @@
+import { Check } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 import { formatWaitTime } from '@/lib/wait-time'
 import type { Ticket, Queue } from '@/types'
 
@@ -20,71 +24,65 @@ export function StatusCard({
   const waitMinutes = isCalled || isCompleted ? 0 : pendingAhead * queue.avg_service_minutes + queue.manual_delay_minutes
 
   return (
-    <div className={`card p-8 text-center ${isCalled ? 'border-primary/40' : ''}`}>
-      <div className="mb-6">
-        {isCalled && (
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-full mb-4">
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            It&apos;s Your Turn!
+    <Card className={cn('text-center', isCalled && 'border-primary/40')}>
+      <CardContent className="p-8">
+        <div className="mb-6">
+          {isCalled && (
+            <Badge className="mb-4 gap-1.5 animate-pulse">
+              <span className="size-2 rounded-full bg-primary-foreground" />
+              It&apos;s Your Turn!
+            </Badge>
+          )}
+          {isNext && !isCalled && (
+            <Badge variant="secondary" className="mb-4">You&apos;re Next</Badge>
+          )}
+          {queue.status === 'paused' && ticket.status === 'pending' && (
+            <Badge variant="warning" className="mb-4">Queue Paused</Badge>
+          )}
+        </div>
+
+        <div className="mb-2">
+          <p className="mb-1 text-sm text-muted-foreground">Your Ticket</p>
+          <p className="text-6xl font-bold text-primary">#{ticket.ticket_number}</p>
+        </div>
+
+        {ticket.invoice_number && (
+          <p className="mb-6 text-sm text-muted-foreground">Invoice #{ticket.invoice_number}</p>
+        )}
+
+        {ticket.status === 'pending' && (
+          <div className="mt-6 flex justify-center gap-8">
+            <div className="text-center">
+              <p className="text-3xl font-bold">{livePosition}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Position</p>
+            </div>
+            <div className="w-px bg-border" />
+            <div className="text-center">
+              <p className="text-3xl font-bold">{formatWaitTime(waitMinutes)}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Est. Wait</p>
+            </div>
           </div>
         )}
-        {isNext && !isCalled && (
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-secondary/10 text-secondary text-sm font-medium rounded-full mb-4">
-            You&apos;re Next
+
+        {isCalled && <p className="mt-6 text-muted-foreground">Please proceed to the counter now.</p>}
+
+        {isCompleted && (
+          <div className="mt-6">
+            <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-success/10">
+              <Check className="size-6 text-success" strokeWidth={2} />
+            </div>
+            <p className="font-medium text-success">Service Completed</p>
+            <p className="mt-1 text-sm text-muted-foreground">Thank you for visiting {queue.name}!</p>
           </div>
         )}
-        {queue.status === 'paused' && ticket.status === 'pending' && (
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-yellow-100 text-yellow-700 text-sm font-medium rounded-full mb-4">
-            Queue Paused
+
+        {isSkipped && (
+          <div className="mt-6">
+            <p className="font-medium text-destructive">Ticket Skipped</p>
+            <p className="mt-1 text-sm text-muted-foreground">Please speak to a staff member for assistance.</p>
           </div>
         )}
-      </div>
-
-      <div className="mb-2">
-        <p className="text-text-tertiary text-sm mb-1">Your Ticket</p>
-        <p className="text-6xl font-bold text-primary">#{ticket.ticket_number}</p>
-      </div>
-
-      {ticket.invoice_number && (
-        <p className="text-text-secondary text-sm mb-6">Invoice #{ticket.invoice_number}</p>
-      )}
-
-      {ticket.status === 'pending' && (
-        <div className="flex justify-center gap-8 mt-6">
-          <div className="text-center">
-            <p className="text-3xl font-bold text-text-primary">{livePosition}</p>
-            <p className="text-xs text-text-tertiary mt-1">Position</p>
-          </div>
-          <div className="w-px bg-bg-border" />
-          <div className="text-center">
-            <p className="text-3xl font-bold text-text-primary">{formatWaitTime(waitMinutes)}</p>
-            <p className="text-xs text-text-tertiary mt-1">Est. Wait</p>
-          </div>
-        </div>
-      )}
-
-      {isCalled && (
-        <p className="text-text-secondary mt-6">Please proceed to the counter now.</p>
-      )}
-
-      {isCompleted && (
-        <div className="mt-6">
-          <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-3">
-            <svg className="text-success" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-          <p className="text-success font-medium">Service Completed</p>
-          <p className="text-text-tertiary text-sm mt-1">Thank you for visiting {queue.name}!</p>
-        </div>
-      )}
-
-      {isSkipped && (
-        <div className="mt-6">
-          <p className="text-danger font-medium">Ticket Skipped</p>
-          <p className="text-text-tertiary text-sm mt-1">Please speak to a staff member for assistance.</p>
-        </div>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   )
 }

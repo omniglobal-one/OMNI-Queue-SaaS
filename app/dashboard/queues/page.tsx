@@ -1,10 +1,13 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { Plus, ChevronRight } from 'lucide-react'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Topbar } from '@/components/layout/Topbar'
-import { QueueStatusBadge } from '@/components/ui/Badge'
-import { EmptyState } from '@/components/ui/EmptyState'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { EmptyState } from '@/components/dashboard/EmptyState'
+import { QueueStatusBadge } from '@/components/dashboard/StatusBadges'
 import type { Queue } from '@/types'
 
 export default async function QueuesPage() {
@@ -24,42 +27,44 @@ export default async function QueuesPage() {
       <Topbar
         title="Queues"
         actions={
-          <Link href="/dashboard/queues/new" className="btn-primary h-9 text-sm">+ New Queue</Link>
+          <Button asChild size="sm">
+            <Link href="/dashboard/queues/new">
+              <Plus className="size-4" /> New Queue
+            </Link>
+          </Button>
         }
       />
       <div className="p-4 sm:p-6 lg:p-8">
-        {queues.length === 0 ? (
-          <div className="card">
+        <Card>
+          {queues.length === 0 ? (
             <EmptyState
               title="No queues yet"
               subtitle="Create a queue to start accepting customers."
               ctaLabel="Create your first queue"
               ctaHref="/dashboard/queues/new"
             />
-          </div>
-        ) : (
-          <div className="card divide-y divide-bg-border">
-            {queues.map(q => (
-              <Link
-                key={q.id}
-                href={`/dashboard/queues/${q.id}`}
-                className="flex items-center gap-4 px-4 py-4 hover:bg-bg-border/30 transition-colors"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-text-primary">{q.name}</p>
-                  {q.description && <p className="text-sm text-text-tertiary truncate">{q.description}</p>}
-                  <p className="text-xs text-text-tertiary mono mt-0.5">queue.omnidesk.one/q/{q.slug}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <QueueStatusBadge status={q.status} />
-                  <svg className="text-text-tertiary" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M6 4l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
+          ) : (
+            <div className="divide-y divide-border/70">
+              {queues.map(q => (
+                <Link
+                  key={q.id}
+                  href={`/dashboard/queues/${q.id}`}
+                  className="flex items-center gap-4 px-4 py-4 transition-colors hover:bg-accent"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium">{q.name}</p>
+                    {q.description && <p className="truncate text-sm text-muted-foreground">{q.description}</p>}
+                    <p className="mt-0.5 font-mono text-xs text-muted-foreground">queue.omnidesk.one/q/{q.slug}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <QueueStatusBadge status={q.status} />
+                    <ChevronRight className="size-4 text-muted-foreground" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </Card>
       </div>
     </>
   )

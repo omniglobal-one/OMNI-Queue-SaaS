@@ -1,4 +1,4 @@
-import { StatCard } from '@/components/ui/StatCard'
+import { StatCard } from '@/components/dashboard/StatCard'
 import type { Ticket, Queue } from '@/types'
 
 export function TodayStats({ tickets, queue }: { tickets: Ticket[]; queue: Queue }) {
@@ -12,7 +12,7 @@ export function TodayStats({ tickets, queue }: { tickets: Ticket[]; queue: Queue
   const estimated = Math.max(0, pending * avgService + queue.manual_delay_minutes)
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
       <StatCard label="Waiting" value={pending} highlight />
       <StatCard label="Served Today" value={served} />
       <StatCard label="Skipped" value={skipped} />

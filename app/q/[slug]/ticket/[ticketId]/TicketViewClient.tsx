@@ -1,12 +1,16 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
+import { Check, Copy } from 'lucide-react'
 import { useQueueRealtime } from '@/hooks/useQueueRealtime'
 import { StatusCard } from '@/components/customer/StatusCard'
 import { PushPrompt } from '@/components/customer/PushPrompt'
 import { PhoneAddForm } from '@/components/customer/PhoneAddForm'
 import { ReconnectBanner } from '@/components/customer/ReconnectBanner'
+import { Card, CardContent } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 import { PLATFORM } from '@/lib/platform-info'
 import type { Ticket, Queue } from '@/types'
 
@@ -47,75 +51,59 @@ export function TicketViewClient({
   }
 
   return (
-    <div className="min-h-screen bg-omni-bg">
-      <header className="h-14 bg-omni-surface border-b border-omni-border flex items-center justify-between px-4">
+    <div className="min-h-[100dvh] bg-background">
+      <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4">
         <Link href={`/q/${queue.slug}`} className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icon.png" alt="" className="w-5 h-5 rounded" />
-          </div>
-          <span className="font-semibold text-omni-ink text-sm">{PLATFORM.name}</span>
+          <Image src="/icon.png" alt="" width={24} height={24} className="rounded-lg" />
+          <span className="text-sm font-semibold">{PLATFORM.name}</span>
         </Link>
         {isActive && (
-          <div className={`flex items-center gap-1.5 text-xs ${isConnected ? 'text-success' : 'text-omni-ink-faint'}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-success animate-pulse' : 'bg-text-tertiary'}`} />
+          <div className={cn('flex items-center gap-1.5 text-xs', isConnected ? 'text-success' : 'text-muted-foreground')}>
+            <span className={cn('size-1.5 rounded-full', isConnected ? 'animate-pulse bg-success' : 'bg-muted-foreground')} />
             {isConnected ? 'Live' : 'Connecting…'}
           </div>
         )}
       </header>
 
-      <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
+      <div className="mx-auto max-w-3xl space-y-4 px-4 py-6">
         <ReconnectBanner isConnected={isConnected} />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-          {/* Left — ticket status */}
-          <StatusCard
-            ticket={ticket}
-            queue={queue}
-            livePosition={livePosition}
-            pendingAhead={pendingAhead}
-          />
+        <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
+          <StatusCard ticket={ticket} queue={queue} livePosition={livePosition} pendingAhead={pendingAhead} />
 
-          {/* Right — actions */}
           <div className="flex flex-col gap-4">
             {isActive && (
               <>
-                <PushPrompt
-                  ticketId={ticket.id}
-                  queueId={queue.id}
-                  alreadySubscribed={!!ticket.push_subscription}
-                />
+                <PushPrompt ticketId={ticket.id} queueId={queue.id} alreadySubscribed={!!ticket.push_subscription} />
                 <PhoneAddForm ticketId={ticket.id} currentPhone={ticket.customer_phone} />
               </>
             )}
 
-            <div className="card p-4 space-y-2 text-center ring-1 ring-accent/40 shadow-lg shadow-primary/20">
-              <p className="text-sm font-medium text-omni-ink">Save your place in the queue</p>
-              <p className="text-xs text-omni-ink-faint">Copy this link to come back to your ticket from any device or browser.</p>
-              <button
-                onClick={handleCopyLink}
-                className={`btn-ghost w-full flex items-center justify-center gap-2 transition-colors ${copied ? 'text-success' : ''}`}
-              >
-                {copied ? (
-                  <>
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                      <path d="M13 4L6 11l-3-3" />
-                    </svg>
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="9" y="9" width="13" height="13" rx="2" />
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                    </svg>
-                    Copy link to my ticket
-                  </>
-                )}
-              </button>
-            </div>
+            <Card className="text-center shadow-lg shadow-primary/20 ring-1 ring-primary/40">
+              <CardContent className="space-y-2 p-4">
+                <p className="text-sm font-medium">Save your place in the queue</p>
+                <p className="text-xs text-muted-foreground">Copy this link to come back to your ticket from any device or browser.</p>
+                <button
+                  onClick={handleCopyLink}
+                  className={cn(
+                    'flex w-full items-center justify-center gap-2 rounded-md border border-input px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent',
+                    copied && 'text-success'
+                  )}
+                >
+                  {copied ? (
+                    <>
+                      <Check className="size-4" /> Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="size-4" /> Copy link to my ticket
+                    </>
+                  )}
+                </button>
+              </CardContent>
+            </Card>
 
-            <p className="text-center text-xs text-omni-ink-faint">Keep this page open to track your position in real time.</p>
+            <p className="text-center text-xs text-muted-foreground">Keep this page open to track your position in real time.</p>
           </div>
         </div>
       </div>

@@ -1,6 +1,10 @@
 'use client'
 
 import { useRef, useState, useEffect, type ReactNode } from 'react'
+import Image from 'next/image'
+import { Loader2, KeyRound } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 import { verifyQueuePasscode } from '@/app/actions/queues'
 import { PLATFORM } from '@/lib/platform-info'
 
@@ -100,57 +104,57 @@ export function PasscodeGate({
   if (unlocked) return <>{children}</>
 
   return (
-    <div className="min-h-screen bg-bg-base flex flex-col items-center justify-center px-4">
+    <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-muted/20 px-4">
       <div className="w-full max-w-sm">
-        <div className="text-center mb-6">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center mx-auto mb-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icon.png" alt="" className="w-7 h-7 rounded-lg" />
+        <div className="mb-6 text-center">
+          <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-xl bg-primary">
+            <Image src="/icon.png" alt="" width={28} height={28} className="rounded-lg" />
           </div>
-          <h1 className="text-xl font-semibold text-text-primary">{queueName}</h1>
-          <p className="text-text-tertiary text-sm mt-1">{businessName} · {PLATFORM.name}</p>
+          <h1 className="text-xl font-semibold">{queueName}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{businessName} · {PLATFORM.name}</p>
         </div>
 
-        <div className="card p-6 space-y-5">
-          <div className="text-center space-y-1">
-            <div className="w-10 h-10 rounded-full bg-bg-border flex items-center justify-center mx-auto">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text-secondary">
-                <rect x="3" y="11" width="18" height="11" rx="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
+        <Card>
+          <CardContent className="space-y-5 p-6">
+            <div className="space-y-1 text-center">
+              <div className="mx-auto flex size-10 items-center justify-center rounded-full bg-muted">
+                <KeyRound className="size-[18px] text-muted-foreground" />
+              </div>
+              <p className="pt-1 text-sm font-medium">Enter passcode to join</p>
+              <p className="text-xs text-muted-foreground">Ask staff for the 4-digit code.</p>
             </div>
-            <p className="text-sm font-medium text-text-primary pt-1">Enter passcode to join</p>
-            <p className="text-xs text-text-tertiary">Ask staff for the 4-digit code.</p>
-          </div>
 
-          <div className="flex justify-center gap-3" onPaste={handlePaste}>
-            {digits.map((d, i) => (
-              <input
-                key={i}
-                ref={refs[i]}
-                type="tel"
-                inputMode="numeric"
-                maxLength={1}
-                value={d}
-                onChange={e => handleDigit(i, e.target.value)}
-                onKeyDown={e => handleKeyDown(i, e)}
-                disabled={loading}
-                className={`w-14 h-14 text-center text-2xl font-bold rounded-xl border-2 bg-bg-base text-text-primary outline-none transition-colors
-                  ${error ? 'border-danger' : d ? 'border-primary' : 'border-bg-border focus:border-primary'}`}
-              />
-            ))}
-          </div>
-
-          {error && (
-            <p className="text-danger text-sm text-center bg-danger/10 px-3 py-2 rounded-lg">{error}</p>
-          )}
-
-          {loading && (
-            <div className="flex justify-center">
-              <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <div className="flex justify-center gap-3" onPaste={handlePaste}>
+              {digits.map((d, i) => (
+                <input
+                  key={i}
+                  ref={refs[i]}
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={d}
+                  onChange={e => handleDigit(i, e.target.value)}
+                  onKeyDown={e => handleKeyDown(i, e)}
+                  disabled={loading}
+                  className={cn(
+                    'size-14 rounded-xl border-2 bg-background text-center text-2xl font-bold outline-none transition-colors',
+                    error ? 'border-destructive' : d ? 'border-primary' : 'border-input focus:border-primary'
+                  )}
+                />
+              ))}
             </div>
-          )}
-        </div>
+
+            {error && (
+              <p className="rounded-lg bg-destructive/10 px-3 py-2 text-center text-sm text-destructive">{error}</p>
+            )}
+
+            {loading && (
+              <div className="flex justify-center">
+                <Loader2 className="size-5 animate-spin text-primary" />
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

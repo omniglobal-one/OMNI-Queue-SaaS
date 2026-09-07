@@ -1,15 +1,18 @@
 'use client'
 
 import Link from 'next/link'
+import { Settings } from 'lucide-react'
 import { useMerchantQueueRealtime } from '@/hooks/useMerchantQueueRealtime'
 import { Topbar } from '@/components/layout/Topbar'
+import { Button } from '@/components/ui/button'
+import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { QueueControls } from '@/components/merchant/QueueControls'
 import { CurrentlyServing } from '@/components/merchant/CurrentlyServing'
 import { TicketRow } from '@/components/merchant/TicketRow'
 import { TodayStats } from '@/components/merchant/TodayStats'
 import { QRCodeCard } from '@/components/merchant/QRCodeCard'
 import { ReconnectBanner } from '@/components/customer/ReconnectBanner'
-import { EmptyState } from '@/components/ui/EmptyState'
+import { EmptyState } from '@/components/dashboard/EmptyState'
 import type { Queue, Ticket } from '@/types'
 
 export function QueueDashboardClient({
@@ -33,23 +36,25 @@ export function QueueDashboardClient({
         actions={
           <div className="flex items-center gap-3">
             <ReconnectBanner isConnected={isConnected} />
-            <Link href={`/dashboard/queues/${queue.id}/settings`} className="btn-ghost h-9 text-sm">
-              Settings
-            </Link>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/dashboard/queues/${queue.id}/settings`}>
+                <Settings className="size-4" /> Settings
+              </Link>
+            </Button>
           </div>
         }
       />
       <div className="p-4 sm:p-6 lg:p-8">
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          <div className="xl:col-span-2 flex flex-col gap-4">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+          <div className="flex flex-col gap-4 xl:col-span-2">
             <TodayStats tickets={tickets} queue={queue} />
             <QueueControls queue={queue} />
             <CurrentlyServing ticket={currentTicket} queue={queue} />
 
-            <div className="card">
-              <div className="p-4 border-b border-bg-border">
-                <h2 className="section-header mb-0">Waiting ({pendingTickets.length})</h2>
-              </div>
+            <Card className="overflow-hidden">
+              <CardHeader className="border-b border-border/70 py-4">
+                <CardTitle className="text-base">Waiting ({pendingTickets.length})</CardTitle>
+              </CardHeader>
               {pendingTickets.length === 0 ? (
                 <EmptyState title="No one waiting" subtitle="Customers will appear here when they join the queue." />
               ) : (
@@ -59,19 +64,19 @@ export function QueueDashboardClient({
                   ))}
                 </div>
               )}
-            </div>
+            </Card>
 
             {recentDone.length > 0 && (
-              <div className="card">
-                <div className="p-4 border-b border-bg-border">
-                  <h2 className="section-header mb-0">Recent</h2>
-                </div>
+              <Card className="overflow-hidden">
+                <CardHeader className="border-b border-border/70 py-4">
+                  <CardTitle className="text-base">Recent</CardTitle>
+                </CardHeader>
                 <div>
                   {recentDone.map((t, i) => (
                     <TicketRow key={t.id} ticket={t} queue={queue} position={i + 1} />
                   ))}
                 </div>
-              </div>
+              </Card>
             )}
           </div>
 

@@ -1,8 +1,11 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Button } from '@/components/ui/Button'
-import { QueueStatusBadge } from '@/components/ui/Badge'
+import { Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent } from '@/components/ui/card'
+import { QueueStatusBadge } from '@/components/dashboard/StatusBadges'
 import { updateQueueStatus, callNext, setManualDelay } from '@/app/actions/queues'
 import type { Queue, Ticket } from '@/types'
 
@@ -35,7 +38,7 @@ export function QueueControls({
     startTransition(async () => {
       const result = await callNext({ queue_id: queue.id })
       if ('error' in result) {
-        if (result.error !== 'NO_PENDING_TICKETS') setCallError(result.error)
+        if (result.error !== 'NO_PENDING_TICKETS') setCallError(result.error ?? null)
       } else if (result.ticket) {
         onTicketCalled?.(result.ticket)
       }
@@ -51,63 +54,57 @@ export function QueueControls({
   }
 
   return (
-    <div className="card p-5 flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="font-semibold text-text-primary">{queue.name}</h2>
-          <div className="flex items-center gap-2 mt-1">
-            <QueueStatusBadge status={queue.status} />
-            <span className="text-xs text-text-tertiary mono">/{queue.slug}</span>
+    <Card>
+      <CardContent className="flex flex-col gap-4 p-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-semibold">{queue.name}</h2>
+            <div className="mt-1 flex items-center gap-2">
+              <QueueStatusBadge status={queue.status} />
+              <span className="font-mono text-xs text-muted-foreground">/{queue.slug}</span>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {queue.status !== 'closed' && (
+              <Button
+                size="sm"
+                variant={queue.status === 'open' ? 'outline' : 'default'}
+                className={queue.status !== 'open' ? 'bg-success text-success-foreground hover:bg-success/90' : ''}
+                onClick={handleStatusToggle}
+                disabled={isPending}
+              >
+                {queue.status === 'open' ? 'Pause' : 'Resume'}
+              </Button>
+            )}
+            {queue.status !== 'closed' && (
+              <Button size="sm" variant="destructive" onClick={handleClose} disabled={isPending}>
+                Close Queue
+              </Button>
+            )}
           </div>
         </div>
-        <div className="flex gap-2">
-          {queue.status !== 'closed' && (
-            <Button
-              variant={queue.status === 'open' ? 'ghost' : 'success'}
-              onClick={handleStatusToggle}
-              loading={isPending}
-            >
-              {queue.status === 'open' ? 'Pause' : 'Resume'}
-            </Button>
-          )}
-          {queue.status !== 'closed' && (
-            <Button variant="danger" onClick={handleClose} loading={isPending}>
-              Close Queue
-            </Button>
-          )}
+
+        <Button onClick={handleCallNext} disabled={isPending || queue.status !== 'open'} className="w-full">
+          {isPending && <Loader2 className="size-4 animate-spin" />} Call Next
+        </Button>
+
+        {callError && <p className="text-sm text-destructive">{callError}</p>}
+
+        <div className="flex items-center gap-2 border-t border-border pt-3">
+          <label className="whitespace-nowrap text-sm text-muted-foreground">Extra delay</label>
+          <Input
+            type="number"
+            min={0}
+            value={delayInput}
+            onChange={e => setDelayInput(e.target.value)}
+            className="w-20 text-center"
+          />
+          <span className="text-sm text-muted-foreground">mins</span>
+          <Button variant="ghost" size="sm" onClick={handleDelaySave} disabled={isPending}>
+            Save
+          </Button>
         </div>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <Button
-          variant="primary"
-          onClick={handleCallNext}
-          loading={isPending}
-          disabled={queue.status !== 'open'}
-          className="flex-1"
-        >
-          Call Next
-        </Button>
-      </div>
-
-      {callError && (
-        <p className="text-danger text-sm">{callError}</p>
-      )}
-
-      <div className="flex items-center gap-2 pt-2 border-t border-bg-border">
-        <label className="text-sm text-text-secondary whitespace-nowrap">Extra delay</label>
-        <input
-          type="number"
-          min={0}
-          value={delayInput}
-          onChange={e => setDelayInput(e.target.value)}
-          className="input w-20 text-center"
-        />
-        <span className="text-sm text-text-tertiary">mins</span>
-        <Button variant="ghost" onClick={handleDelaySave} loading={isPending} className="h-9 px-3">
-          Save
-        </Button>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }

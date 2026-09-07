@@ -1,268 +1,401 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { redirect } from 'next/navigation'
+import {
+  ArrowRight,
+  QrCode,
+  BellRinging,
+  ChatCircleText,
+  ChartLineUp,
+  ClockCountdown,
+  ShieldCheck,
+  Kanban,
+  CheckCircle,
+  UsersThree,
+} from '@phosphor-icons/react/dist/ssr'
+import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { PLATFORM } from '@/lib/platform-info'
 
 export default async function LandingPage() {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
-
-  if (user) {
-    redirect('/dashboard')
-  }
+  if (user) redirect('/dashboard')
 
   return (
-    <div className="min-h-screen bg-white flex flex-col overflow-x-hidden">
+    <div className="flex min-h-[100dvh] flex-col bg-background">
+      <SiteHeader />
+      <main className="flex-1">
+        <Hero />
+        <TrustStrip />
+        <FeatureGrid />
+        <HowItWorks />
+        <Pricing />
+        <ClosingCta />
+      </main>
+      <SiteFooter />
+    </div>
+  )
+}
 
-      {/* Navbar — centered logo only, matching all OMNI projects */}
-      <header className="relative z-10 px-6 py-5 flex items-center justify-center max-w-6xl mx-auto w-full">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-sm">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icon.png" alt="" className="w-6 h-6 rounded" />
-          </div>
-          <span className="text-lg font-bold text-text-primary">{PLATFORM.name}</span>
-        </div>
-      </header>
-
-      {/* Hero */}
-      <section className="relative flex flex-col items-center justify-center text-center px-6 pt-16 pb-32">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-primary/10 rounded-full blur-3xl" />
-          <div className="absolute -top-20 -right-40 w-[500px] h-[500px] bg-blue-200/40 rounded-full blur-3xl" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-primary/5 rounded-full blur-3xl" />
-        </div>
-
-        <div className="relative max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-white border border-bg-border shadow-sm text-text-secondary px-4 py-1.5 rounded-full text-xs font-medium mb-8">
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            Real-time queues • Push notifications • WhatsApp alerts
-          </div>
-
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-text-primary leading-[1.05] tracking-tight mb-10">
-            No more waiting
-            <br />
-            <span className="relative inline-block">
-              <span className="relative z-10 text-primary">in line.</span>
-              <svg className="absolute -bottom-4 left-0 w-full" viewBox="0 0 300 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M2 8.5C60 3 120 2 150 2C180 2 240 3 298 8.5" stroke="#2563EB" strokeWidth="4" strokeLinecap="round" opacity="0.3"/>
-              </svg>
-            </span>
-          </h1>
-
-          <p className="text-xl text-text-secondary leading-relaxed mb-10 max-w-xl mx-auto">
-            {PLATFORM.name} lets your customers join queues digitally, track their position in real time, and get notified the moment it&apos;s their turn — no app required.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white font-semibold text-base px-8 py-3.5 rounded-xl transition-colors shadow-lg shadow-primary/25"
-            >
-              Get started free
+function SiteHeader() {
+  return (
+    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
+      <div className="container flex h-16 items-center justify-between">
+        <Link href="/" className="flex items-center gap-2.5">
+          <Image src="/icon.png" alt="" width={28} height={28} className="rounded-md" />
+          <span className="text-[15px] font-semibold tracking-tight">{PLATFORM.name}</span>
+        </Link>
+        <nav className="hidden items-center gap-8 md:flex">
+          <a href="#platform" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+            Platform
+          </a>
+          <a href="#workflow" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+            How it works
+          </a>
+          <a href="#pricing" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+            Pricing
+          </a>
+        </nav>
+        <div className="flex items-center gap-3">
+          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+            <Link href="/login">Log in</Link>
+          </Button>
+          <Button asChild size="sm">
+            <Link href="/login">
+              Get started <ArrowRight weight="bold" />
             </Link>
-          </div>
+          </Button>
         </div>
+      </div>
+    </header>
+  )
+}
 
-        {/* Mock queue preview */}
-        <div className="relative mt-20 max-w-4xl w-full mx-auto">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white z-10 pointer-events-none" style={{ top: '60%' }} />
-          <div className="bg-white border border-bg-border rounded-2xl shadow-2xl shadow-gray-200 overflow-hidden">
-            <div className="flex items-center gap-1.5 px-4 py-3 border-b border-bg-border bg-bg-base">
-              <div className="w-3 h-3 rounded-full bg-red-300" />
-              <div className="w-3 h-3 rounded-full bg-yellow-300" />
-              <div className="w-3 h-3 rounded-full bg-green-300" />
-              <div className="flex-1 mx-4 bg-bg-border rounded-md h-5 flex items-center px-3">
-                <span className="text-text-tertiary text-xs font-mono">omniqueue.app/q/cafe-aroma-orders</span>
-              </div>
-            </div>
-            <div className="p-4 bg-gray-950 space-y-2">
-              {[
-                { num: 'A005', name: 'Rosmah Binti Ali', status: 'Being Served', active: true },
-                { num: 'A006', name: 'James Ooi', status: 'Position 1', active: false },
-                { num: 'A007', name: 'Kavitha Krishnan', status: 'Position 2', active: false },
-                { num: 'A008', name: 'Waiting…', status: 'Position 3', active: false },
-              ].map((t) => (
-                <div key={t.num} className={`flex items-center gap-3 rounded-lg px-4 py-3 ${t.active ? 'bg-primary/20 border border-primary/30' : 'bg-white/5'}`}>
-                  <span className={`font-mono text-sm font-bold ${t.active ? 'text-primary' : 'text-white/50'}`}>#{t.num}</span>
-                  <span className="flex-1 text-sm text-white/70">{t.name}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded ${t.active ? 'bg-primary/30 text-primary' : 'bg-white/10 text-white/40'}`}>{t.status}</span>
-                </div>
-              ))}
-              <div className="flex items-center justify-between mt-1 px-1">
-                <span className="text-white/40 text-xs font-medium">Café Aroma — Order Queue</span>
-                <span className="flex items-center gap-1.5 text-green-400 text-xs font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                  7 waiting
-                </span>
-              </div>
-            </div>
-          </div>
+function Hero() {
+  return (
+    <section className="container grid gap-14 py-16 md:grid-cols-2 md:items-center md:py-24 lg:py-28">
+      <div className="max-w-xl">
+        <Badge variant="outline" className="mb-6 gap-1.5 border-primary/25 bg-primary/5 py-1 text-primary">
+          <span className="size-1.5 rounded-full bg-primary" />
+          Real-time queues · Push alerts · WhatsApp
+        </Badge>
+        <h1 className="text-balance text-4xl font-semibold leading-[1.08] tracking-tight md:text-6xl">
+          No more waiting in line.
+        </h1>
+        <p className="mt-6 text-pretty text-lg leading-relaxed text-muted-foreground">
+          Customers join your queue by scanning a code, track their live position from their own
+          phone, and get called the moment it&apos;s their turn — no app install, no crowded
+          waiting room.
+        </p>
+        <div className="mt-9 flex flex-wrap items-center gap-3">
+          <Button asChild size="lg" className="px-6">
+            <Link href="/login">
+              Get started free <ArrowRight weight="bold" />
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline" className="px-6">
+            <Link href="#workflow">See how it works</Link>
+          </Button>
         </div>
-      </section>
+        <p className="mt-6 text-sm text-muted-foreground">
+          First month free. No credit card required.
+        </p>
+      </div>
+      <QueuePreview />
+    </section>
+  )
+}
 
-      {/* How it works */}
-      <section className="px-6 py-24 max-w-5xl mx-auto w-full">
-        <div className="text-center mb-14">
-          <p className="text-primary font-semibold text-sm uppercase tracking-widest mb-3">How it works</p>
-          <h2 className="text-4xl font-bold text-text-primary">Three steps, zero waiting rooms</h2>
+function QueuePreview() {
+  const rows = [
+    { num: 'A005', name: 'Rosmah Binti Ali', status: 'Being served', tone: 'default' as const },
+    { num: 'A006', name: 'James Ooi', status: 'Position 1', tone: 'outline' as const },
+    { num: 'A007', name: 'Kavitha Krishnan', status: 'Position 2', tone: 'outline' as const },
+    { num: 'A008', name: 'Waiting…', status: 'Position 3', tone: 'outline' as const },
+  ]
+  return (
+    <div className="relative">
+      <div className="absolute -inset-x-6 -inset-y-8 -z-10 rounded-[2rem] bg-gradient-to-br from-primary/10 via-transparent to-transparent blur-2xl" />
+      <div className="overflow-hidden rounded-xl border border-border/80 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04),0_16px_40px_-12px_rgba(0,0,0,0.14)]">
+        <div className="flex items-center justify-between border-b border-border/70 px-4 py-3">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <Kanban className="size-4 text-primary" weight="fill" />
+            Café Aroma — Order Queue
+          </div>
+          <span className="text-xs text-muted-foreground">/q/cafe-aroma-orders</span>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-          <div className="hidden md:block absolute top-7 left-1/3 right-1/3 h-px bg-bg-border" />
-          {[
-            {
-              icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />,
-              title: 'Scan or tap a link',
-              body: 'Customers join your queue by scanning a QR code or tapping a link — no app download, no account needed.',
-            },
-            {
-              icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />,
-              title: 'Track in real time',
-              body: 'Their live position updates automatically. They see exactly how many people are ahead and an estimated wait time.',
-            },
-            {
-              icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />,
-              title: 'Get called instantly',
-              body: 'When their turn arrives, they get a push notification even if the tab is closed — and staff can send a one-tap WhatsApp message straight from the dashboard.',
-            },
-          ].map((s, i) => (
-            <div key={i} className="flex flex-col items-center text-center">
-              <div className="relative mb-6">
-                <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
-                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">{s.icon}</svg>
-                </div>
-                <span className="absolute -top-2 -right-2 w-5 h-5 bg-white border border-bg-border rounded-full text-[10px] font-bold text-text-tertiary flex items-center justify-center">{i + 1}</span>
-              </div>
-              <h3 className="font-bold text-text-primary text-lg mb-2">{s.title}</h3>
-              <p className="text-text-secondary text-sm leading-relaxed">{s.body}</p>
+        <ul className="divide-y divide-border/70">
+          {rows.map((r) => (
+            <li key={r.num} className="flex items-center gap-3 px-4 py-3.5">
+              <span className="w-12 shrink-0 font-mono text-sm font-bold text-primary">#{r.num}</span>
+              <p className="min-w-0 flex-1 truncate text-sm">{r.name}</p>
+              <Badge variant={r.tone} className="shrink-0 whitespace-nowrap">
+                {r.status}
+              </Badge>
+            </li>
+          ))}
+        </ul>
+        <div className="flex items-center justify-between border-t border-border/70 bg-muted/30 px-4 py-2.5 text-xs text-muted-foreground">
+          <span>7 waiting</span>
+          <span className="flex items-center gap-1">
+            <CheckCircle weight="fill" className="size-3.5 text-success" /> Avg wait 6m
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TrustStrip() {
+  const items = [
+    { icon: QrCode, label: 'Scan-to-join, no app needed' },
+    { icon: BellRinging, label: 'Push alerts, tab closed or not' },
+    { icon: ChatCircleText, label: 'One-tap WhatsApp updates' },
+    { icon: ShieldCheck, label: 'Optional passcode-gated queues' },
+  ]
+  return (
+    <section className="border-y border-border/60 bg-muted/20">
+      <div className="container grid grid-cols-2 gap-6 py-8 md:grid-cols-4 md:gap-8">
+        {items.map(({ icon: Icon, label }) => (
+          <div key={label} className="flex items-center gap-2.5 text-sm text-muted-foreground">
+            <Icon className="size-4 shrink-0 text-primary" />
+            {label}
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function FeatureGrid() {
+  return (
+    <section id="platform" className="container py-20 md:py-28">
+      <div className="max-w-2xl">
+        <h2 className="text-balance text-3xl font-semibold tracking-tight md:text-4xl">
+          Everything a walk-in counter needs, nothing it doesn&apos;t.
+        </h2>
+        <p className="mt-4 text-pretty text-muted-foreground">
+          Print a QR code, hand out a link, or share it on your storefront — customers join from
+          any phone, and your staff run the queue from one dashboard.
+        </p>
+      </div>
+      <div className="mt-12 grid gap-4 md:grid-cols-6 md:grid-rows-2">
+        <FeatureCard
+          className="md:col-span-4 md:row-span-1"
+          icon={QrCode}
+          title="A join link for every counter"
+          description="Each queue gets its own QR code and link — auto-numbered tickets or your own invoice references, whichever fits how you already work."
+        />
+        <FeatureCard
+          className="md:col-span-2 md:row-span-2"
+          icon={ChatCircleText}
+          title="Notify without an app"
+          description="Call next with one tap. Customers get a push notification even with the tab closed, and staff can fire off a one-tap WhatsApp message straight from the ticket."
+        />
+        <FeatureCard
+          className="md:col-span-2 md:row-span-1"
+          icon={ClockCountdown}
+          title="A live wait estimate"
+          description="Position and estimated wait update automatically as the queue moves, so nobody has to ask 'how much longer?'"
+        />
+        <FeatureCard
+          className="md:col-span-2 md:row-span-1"
+          icon={UsersThree}
+          title="Merchant and admin roles"
+          description="Staff run their own counter; platform admins see every merchant, queue, and ticket in one place."
+        />
+        <FeatureCard
+          className="md:col-span-6 md:row-span-1 md:flex-row md:items-center md:gap-8"
+          icon={ChartLineUp}
+          title="A dashboard that answers 'how are we doing'"
+          description="Waiting now, served today, and skipped — updated live, the moment you open the queue."
+          wide
+        />
+      </div>
+    </section>
+  )
+}
+
+function FeatureCard({
+  icon: Icon,
+  title,
+  description,
+  className = '',
+  wide = false,
+}: {
+  icon: PhosphorIcon
+  title: string
+  description: string
+  className?: string
+  wide?: boolean
+}) {
+  return (
+    <div
+      className={`group flex flex-col justify-between rounded-xl border border-border/80 bg-card p-6 transition-colors hover:border-primary/30 ${
+        wide ? 'md:flex-row' : ''
+      } ${className}`}
+    >
+      <div className={wide ? 'md:max-w-md' : ''}>
+        <div className="mb-4 flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <Icon className="size-[18px]" weight="duotone" />
+        </div>
+        <h3 className="text-base font-semibold tracking-tight">{title}</h3>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p>
+      </div>
+    </div>
+  )
+}
+
+function HowItWorks() {
+  const steps = [
+    {
+      n: '01',
+      title: 'Scan or tap a link',
+      description: 'Customers join your queue by scanning a QR code or tapping a link — no app download, no account needed.',
+    },
+    {
+      n: '02',
+      title: 'Track in real time',
+      description: 'Their live position updates automatically. They see exactly how many people are ahead and an estimated wait time.',
+    },
+    {
+      n: '03',
+      title: 'Get called instantly',
+      description: "When their turn arrives, they get a push notification even if the tab is closed — and staff can send a one-tap WhatsApp message straight from the dashboard.",
+    },
+  ]
+  return (
+    <section id="workflow" className="border-t border-border/60 bg-muted/20 py-20 md:py-28">
+      <div className="container">
+        <h2 className="max-w-xl text-balance text-3xl font-semibold tracking-tight md:text-4xl">
+          Three steps, zero waiting rooms.
+        </h2>
+        <div className="mt-14 grid gap-10 md:grid-cols-3 md:gap-8">
+          {steps.map((s) => (
+            <div key={s.n}>
+              <span className="text-sm font-medium text-primary">{s.n}</span>
+              <h3 className="mt-3 text-lg font-semibold tracking-tight">{s.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.description}</p>
             </div>
           ))}
         </div>
-      </section>
+      </div>
+    </section>
+  )
+}
 
-      {/* Features strip */}
-      <section className="bg-white px-6">
-        <div className="max-w-5xl mx-auto bg-gray-950 text-white rounded-3xl overflow-hidden border border-white/10">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/5">
-            {[
-              {
-                accent: 'text-blue-400',
-                icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />,
-                title: 'QR code join',
-                body: 'Print a QR code or share a link. Customers join in seconds from any device.',
-              },
-              {
-                accent: 'text-amber-400',
-                icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />,
-                title: 'Instant call next',
-                body: 'One-tap to advance the queue. Notifications fire automatically to the next customer.',
-              },
-              {
-                accent: 'text-green-400',
-                icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />,
-                title: 'Live analytics',
-                body: 'See tickets served, skipped, and average wait times updated in real time.',
-              },
-            ].map((f, i) => (
-              <div key={i} className="bg-gray-950 px-8 py-10 flex flex-col items-center text-center">
-                <svg className={`w-6 h-6 ${f.accent} mb-5`} fill="none" viewBox="0 0 24 24" stroke="currentColor">{f.icon}</svg>
-                <h3 className="font-bold text-white text-lg mb-2">{f.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{f.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section className="px-6 py-24 max-w-5xl mx-auto w-full">
-        <div className="text-center mb-14">
-          <p className="text-primary font-semibold text-sm uppercase tracking-widest mb-3">Pricing</p>
-          <h2 className="text-4xl font-bold text-text-primary">Simple, transparent pricing</h2>
-          <p className="text-text-secondary mt-4 max-w-md mx-auto">Start free for your first month. No credit card required.</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="border border-bg-border rounded-2xl p-8 flex flex-col">
-            <p className="text-text-secondary text-xs font-semibold uppercase tracking-widest mb-4">Free trial</p>
-            <div className="flex items-end gap-1 mb-2">
-              <span className="text-4xl font-extrabold text-text-primary">Free</span>
-            </div>
-            <p className="text-text-secondary text-sm mb-6">First month on us. No credit card needed.</p>
-            <ul className="text-sm text-text-secondary space-y-3 mb-8 flex-1">
-              <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">✓</span>Full access, all features</li>
-              <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">✓</span>No commitment</li>
-              <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">✓</span>Cancel before billing</li>
-            </ul>
-            <Link href="/login" className="inline-flex items-center justify-center w-full py-3 rounded-xl border border-bg-border text-text-primary font-semibold text-sm hover:bg-bg-base transition-colors">
-              Start free
-            </Link>
-          </div>
-          <div className="border border-bg-border rounded-2xl p-8 flex flex-col">
-            <p className="text-text-secondary text-xs font-semibold uppercase tracking-widest mb-4">Monthly</p>
-            <div className="flex items-end gap-1 mb-2">
-              <span className="text-4xl font-extrabold text-text-primary">$10</span>
-              <span className="text-text-secondary text-sm mb-1">/month</span>
-            </div>
-            <p className="text-text-secondary text-sm mb-6">Billed monthly. Cancel any time.</p>
-            <ul className="text-sm text-text-secondary space-y-3 mb-8 flex-1">
-              <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">✓</span>All features included</li>
-              <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">✓</span>Unlimited usage</li>
-              <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">✓</span>Priority support</li>
-            </ul>
-            <Link href="/login" className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20">
-              Get started
-            </Link>
-          </div>
-          <div className="border-2 border-primary rounded-2xl p-8 flex flex-col relative">
-            <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold px-4 py-1 rounded-full">Best value</span>
-            <p className="text-text-secondary text-xs font-semibold uppercase tracking-widest mb-4">Annual</p>
-            <div className="flex items-end gap-1 mb-2">
-              <span className="text-4xl font-extrabold text-text-primary">$100</span>
-              <span className="text-text-secondary text-sm mb-1">/year</span>
-            </div>
-            <p className="text-text-secondary text-sm mb-6">Just $8.33/month — 2 months free.</p>
-            <ul className="text-sm text-text-secondary space-y-3 mb-8 flex-1">
-              <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">✓</span>Everything in Monthly</li>
-              <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">✓</span>2 months free</li>
-              <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">✓</span>Annual receipt</li>
-            </ul>
-            <Link href="/login" className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20">
-              Get started
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Bottom CTA */}
-      <section className="px-6 py-24 text-center">
-        <div className="max-w-lg mx-auto">
-          <h2 className="text-4xl font-bold text-text-primary mb-4">Ready to go digital?</h2>
-          <p className="text-text-secondary mb-8">Create your first queue in under 2 minutes. No setup fees.</p>
-          <Link
-            href="/login"
-            className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white font-semibold text-base px-8 py-3.5 rounded-xl transition-colors shadow-lg shadow-primary/20"
+function Pricing() {
+  const tiers = [
+    {
+      name: 'Free trial',
+      price: 'Free',
+      period: 'first month',
+      features: ['Full access, all features', 'No commitment', 'Cancel before billing'],
+      cta: 'Start free',
+      variant: 'outline' as const,
+    },
+    {
+      name: 'Monthly',
+      price: '$10',
+      period: '/month',
+      features: ['All features included', 'Unlimited usage', 'Priority support'],
+      cta: 'Get started',
+      variant: 'default' as const,
+    },
+    {
+      name: 'Annual',
+      price: '$100',
+      period: '/year',
+      features: ['Everything in Monthly', '2 months free', 'Annual receipt'],
+      cta: 'Get started',
+      variant: 'default' as const,
+      badge: 'Best value',
+    },
+  ]
+  return (
+    <section id="pricing" className="container py-20 md:py-28">
+      <div className="text-center">
+        <h2 className="text-balance text-3xl font-semibold tracking-tight md:text-4xl">Simple, transparent pricing</h2>
+        <p className="mx-auto mt-4 max-w-md text-pretty text-muted-foreground">
+          Start free for your first month. No credit card required.
+        </p>
+      </div>
+      <div className="mt-12 grid gap-6 md:grid-cols-3">
+        {tiers.map((t) => (
+          <div
+            key={t.name}
+            className={`relative flex flex-col rounded-xl border p-8 ${
+              t.badge ? 'border-2 border-primary' : 'border-border/80'
+            }`}
           >
-            Get started free
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="px-6 py-6 border-t border-bg-border">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-primary rounded-md flex items-center justify-center">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/icon.png" alt="" className="w-4 h-4 rounded" />
+            {t.badge && (
+              <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-xs font-semibold text-primary-foreground">
+                {t.badge}
+              </span>
+            )}
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t.name}</p>
+            <div className="mb-2 mt-4 flex items-end gap-1">
+              <span className="text-4xl font-semibold tracking-tight">{t.price}</span>
+              <span className="mb-1 text-sm text-muted-foreground">{t.period}</span>
             </div>
-            <span className="text-sm font-semibold text-text-secondary">{PLATFORM.name}</span>
+            <ul className="mb-8 mt-4 flex-1 space-y-3 text-sm text-muted-foreground">
+              {t.features.map((f) => (
+                <li key={f} className="flex items-start gap-2">
+                  <CheckCircle weight="fill" className="mt-0.5 size-4 shrink-0 text-success" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <Button asChild variant={t.variant} className="w-full">
+              <Link href="/login">{t.cta}</Link>
+            </Button>
           </div>
-          <p className="text-text-tertiary text-sm">© {new Date().getFullYear()} {PLATFORM.name}. All rights reserved.</p>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function ClosingCta() {
+  return (
+    <section className="container pb-20 md:pb-28">
+      <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-foreground px-8 py-16 text-center text-background md:px-16">
+        <div className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-primary/25 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -left-24 size-72 rounded-full bg-primary/20 blur-3xl" />
+        <div className="relative">
+          <h2 className="text-balance text-3xl font-semibold tracking-tight md:text-4xl">Ready to go digital?</h2>
+          <p className="mx-auto mt-4 max-w-lg text-pretty text-background/70">
+            Create your first queue in under 2 minutes. No setup fees.
+          </p>
+          <Button asChild size="lg" className="mt-8 bg-background px-6 text-foreground hover:bg-background/90">
+            <Link href="/login">
+              Get started free <ArrowRight weight="bold" />
+            </Link>
+          </Button>
         </div>
-      </footer>
-    </div>
+      </div>
+    </section>
+  )
+}
+
+function SiteFooter() {
+  return (
+    <footer className="border-t border-border/60 py-10">
+      <div className="container flex flex-col items-center justify-between gap-4 text-sm text-muted-foreground md:flex-row">
+        <div className="flex items-center gap-2">
+          <Image src="/icon.png" alt="" width={18} height={18} className="rounded" />
+          <span>{PLATFORM.name}</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <Link href="/privacy" className="hover:text-foreground transition-colors">
+            Privacy &amp; Terms
+          </Link>
+          <p>&copy; {new Date().getFullYear()} {PLATFORM.name}. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
   )
 }
