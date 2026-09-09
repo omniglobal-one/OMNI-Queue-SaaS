@@ -30,36 +30,11 @@
     --radius: 0.625rem;
   }
 
-  /* System dark mode only — no manual toggle in this pass. Every token
-     redefined here, never inherited partially, so nothing renders one
-     theme's text on the other theme's surface. */
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --background: 240 10% 4%;
-      --foreground: 0 0% 96%;
-      --card: 240 8% 7%;
-      --card-foreground: 0 0% 96%;
-      --popover: 240 8% 7%;
-      --popover-foreground: 0 0% 96%;
-      --primary: 86 60% 48%;
-      --primary-foreground: 240 10% 4%;
-      --secondary: 240 4% 15%;
-      --secondary-foreground: 0 0% 96%;
-      --muted: 240 4% 15%;
-      --muted-foreground: 240 5% 65%;
-      --accent: 240 4% 16%;
-      --accent-foreground: 0 0% 96%;
-      --destructive: 0 63% 52%;
-      --destructive-foreground: 0 0% 98%;
-      --success: 142 55% 48%;
-      --success-foreground: 0 0% 98%;
-      --warning: 38 80% 58%;
-      --warning-foreground: 20 14% 10%;
-      --border: 240 4% 17%;
-      --input: 240 4% 17%;
-      --ring: 86 60% 48%;
-    }
-  }
+  /* No dark mode — the app previously followed prefers-color-scheme with
+     no way for a user to opt out, which meant anyone with system dark mode
+     on (most phones, by default) saw a theme they never chose. Light only
+     until an explicit in-app toggle exists to make dark mode a choice
+     rather than something imposed by the OS. */
 
   * {
     @apply border-border;
