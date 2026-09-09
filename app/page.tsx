@@ -61,6 +61,9 @@ function SiteHeader() {
         </nav>
         <div className="flex items-center gap-3">
           <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+            <Link href="/q/cafe-aroma-orders">See a live queue</Link>
+          </Button>
+          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
             <Link href="/login">Log in</Link>
           </Button>
           <Button asChild size="sm">
@@ -97,7 +100,7 @@ function Hero() {
             </Link>
           </Button>
           <Button asChild size="lg" variant="outline" className="px-6">
-            <Link href="#workflow">See how it works</Link>
+            <Link href="/q/cafe-aroma-orders">See a live queue</Link>
           </Button>
         </div>
         <p className="mt-6 text-sm text-muted-foreground">
