@@ -40,7 +40,9 @@ export default function LoginPage() {
     <div className="flex min-h-[100dvh] items-center justify-center bg-muted/30 px-4">
       <div className="w-full max-w-sm">
         <Link href="/" className="mb-8 flex items-center justify-center gap-2.5">
-          <Image src="/icon.png" alt="" width={28} height={28} className="rounded-md" />
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary">
+            <Image src="/icon.png" alt="" width={18} height={18} className="rounded-sm" />
+          </div>
           <span className="text-[15px] font-semibold tracking-tight">{PLATFORM.name}</span>
         </Link>
         <div className="rounded-xl border border-border/80 bg-card p-8 shadow-sm">
